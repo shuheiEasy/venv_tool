@@ -1,0 +1,3 @@
+[submodule "src/azagon"]
+	path = src/azagon
+	url = https://github.com/shuheiEasy/azagon.git

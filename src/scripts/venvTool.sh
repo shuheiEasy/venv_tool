@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# venv_tool実行ファイルの場所取得
+tool_path="@CMAKE_INSTALL_PREFIX@/bin/venv_tool"
+
+# 引数による場合分け
+case "$1" in
+"activate" | "deactivate" | "create")
+    # venv_tool実行
+    tool_ret=$($tool_path $@)
+
+    case "$?" in
+    "10")
+        deactivate
+        source $tool_ret
+        ;;
+    "11")
+        source $tool_ret
+        ;;
+    "20")
+        deactivate
+        ;;
+    "30")
+        # 仮想環境を立ち上げ
+        tool_activate_ret=$($tool_path activate $2)
+        case "$?" in
+        "10")
+            deactivate
+            source $tool_activate_ret
+            ;;
+        "11")
+            source $tool_activate_ret
+            ;;
+        esac
+        # pip update
+        pip install -U pip
+
+        deactivate
+        ;;
+    *)
+        $tool_path $@
+        ;;
+    esac
+
+    ;;
+*)
+    $tool_path $@
+    ;;
+esac
