@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # プロジェクト名と使用する言語を設定
-project(venv_tool LANGUAGES CXX VERSION 0.0.1)
+project(venv_tool LANGUAGES CXX VERSION 1.0.0)
 
 # 静的リンクへ変更
 set(STATIC_LINK_FLAG ON CACHE BOOL ON FORCE)
@@ -33,6 +33,9 @@ configure_file (
 # シェルスクリプトのコピー
 file(COPY "scripts/complementMain.sh" DESTINATION ${PROJECT_BINARY_DIR}/scripts)
 
+# Pythonファイルのコピー
+file(COPY "scripts/getPyPath.py" DESTINATION ${PROJECT_BINARY_DIR}/scripts)
+
 # インクルードフォルダ追加
 include_directories(include)
 include_directories(${azagon_INCLUDE_DIR})
@@ -51,3 +54,4 @@ target_link_libraries(${PROJECT_NAME} ${azagon_LIBS})
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES ${PROJECT_BINARY_DIR}/config/env.cfg DESTINATION config PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 install(FILES ${PROJECT_BINARY_DIR}/bin/venvTool.sh DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+install(FILES ${PROJECT_BINARY_DIR}/scripts/getPyPath.py DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

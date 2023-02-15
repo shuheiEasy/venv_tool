@@ -64,6 +64,8 @@ namespace venv_tool
     };
 
     bool activateEnv(dataObject::String env_name, dataObject::Dict<dataObject::String, dataObject::String> &cfg, EnvState &state);
+    void addPath(dataObject::String path, dataObject::Dict<dataObject::String, dataObject::String> &cfg,EnvState &state);
+    void addPipConfig(dataObject::List<dataObject::String> args,dataObject::Dict<dataObject::String,dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
     void checkEnv(dataObject::String env_cfg_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
     dataObject::List<dataObject::String> command(dataObject::String cmd);
     int createEnv(dataObject::String env_name, dataObject::String venv_path, PythonVersion python_version);
@@ -71,11 +73,15 @@ namespace venv_tool
     void help_text(void);
     void moveCurrentDirectory(dataObject::String path);
     void setEnvironmentPath(dataObject::String env_name, dataObject::String append_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
+    dataObject::List<dataObject::String> pathList(dataObject::Dict<dataObject::String, dataObject::String> &cfg);
     void printList(dataObject::List<dataObject::String> list);
     int pythonInstall(dataObject::String venv_path, PythonVersion version);
     dataObject::List<dataObject::String> pythonList(dataObject::Dict<dataObject::String, dataObject::String> &cfg);
     void readConfig(dataObject::String cfg_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
+    void readPipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String,dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &cfg);
+    void removeEnv(dataObject::String env_name, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
     void writeConfig(dataObject::String cfg_dir_path, dataObject::Dict<dataObject::String, dataObject::String> cfg);
+    void writePipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String,dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> pip_cfgs);
 }
 
 #endif
