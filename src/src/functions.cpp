@@ -29,6 +29,112 @@ namespace venv_tool
         }
     }
 
+    void addPath(String path, Dict<String, String> &cfg, EnvState &state)
+    {
+        String active_env_name;
+        if (state.getEnvState(active_env_name))
+        {
+            File dir(path);
+            auto exist_paths = pathList(cfg);
+            bool write_flag = true;
+
+            for (int i = 0; i < exist_paths.getSize(); i++)
+            {
+                File buffer(exist_paths[i]);
+                if (dir.getPath() == buffer.getPath())
+                {
+                    write_flag = false;
+                    break;
+                }
+            }
+
+            if (write_flag)
+            {
+                String pth_file = cfg["venv_path"] + "env/" + active_env_name + "/lib";
+
+                FileExplorer dirs(pth_file);
+                pth_file = dirs.getDirList()[0].getPath();
+                pth_file += "site-packages/paths.pth";
+
+                TextFile text_file(pth_file);
+                if (!text_file.exists())
+                {
+                    text_file.touch();
+                }
+
+                text_file.writeline(dir.getPath());
+            }
+            else
+            {
+                print("すでにそのパスは追加されています");
+            }
+        }
+        else
+        {
+            print("仮想環境に入っていません");
+        }
+    }
+
+    void addPipConfig(List<String> args, Dict<String, Dict<String, List<String>>> &pip_cfgs)
+    {
+        String loading_order = "[site]";
+        for (int i = 3; i < len(args); i++)
+        {
+            auto key_and_value = args[i].split("=");
+            if (len(key_and_value) != 2)
+            {
+                continue;
+            }
+
+            List<String> values, buffer;
+            buffer = key_and_value[1].split(",");
+
+            for (int j = 0; j < len(buffer); j++)
+            {
+                bool no_exist = true;
+                for (int k = 0; k < len(values); k++)
+                {
+                    if (values[k] == buffer[j])
+                    {
+                        no_exist = false;
+                        break;
+                    }
+                }
+                if (no_exist)
+                {
+                    values.append(buffer[j]);
+                }
+            }
+
+            if (buffer.getSize() > 0)
+            {
+                buffer.clear();
+            }
+
+            if (pip_cfgs[loading_order].getData(key_and_value[0], buffer) == 0)
+            {
+                for (int j = 0; j < len(buffer); j++)
+                {
+                    bool no_exist = true;
+                    for (int k = 0; k < len(values); k++)
+                    {
+                        if (values[j] == buffer[k])
+                        {
+                            no_exist = false;
+                            break;
+                        }
+                    }
+
+                    if (no_exist)
+                    {
+                        values.append(buffer[j]);
+                    }
+                }
+            }
+            pip_cfgs[loading_order][key_and_value[0]] = values;
+        }
+    }
+
     void checkEnv(dataObject::String env_cfg_path, Dict<String, String> &cfg)
     {
         auto venv_path = cfg["venv_path"];
@@ -119,6 +225,14 @@ namespace venv_tool
         cmd += env_name;
         system(cmd.getChar());
 
+        // Pipの関連設定
+        Dict<String, Dict<String, List<String>>> pip_cfgs;
+        String pip_cfg_path = venv_path + "config/pip.conf";
+        readPipConfig(pip_cfg_path, pip_cfgs);
+
+        pip_cfg_path = venv_path + "env/" + env_name + "/pip.conf";
+        writePipConfig(pip_cfg_path, pip_cfgs);
+
         // 元の場所へ帰る
         moveCurrentDirectory(current_path);
 
@@ -168,6 +282,13 @@ namespace venv_tool
         }
 
         path_file.writeline(append_dir_path);
+    }
+
+    List<String> pathList(Dict<String, String> &cfg)
+    {
+        String cmd = "python3 ";
+        cmd += cfg["venv_path"] + "bin/getPyPath.py";
+        return command(cmd);
     }
 
     void printList(List<String> list)
@@ -336,9 +457,151 @@ namespace venv_tool
         }
     }
 
+    void readPipConfig(String pip_cfg_path, Dict<String, Dict<String, List<String>>> &cfg)
+    {
+        TextFile cfgFile(pip_cfg_path);
+
+        if (!cfgFile.exists())
+        {
+            cfgFile.touch();
+        }
+        else
+        {
+            auto lines = cfgFile.readlines();
+            String loading_order = "";
+            String key = "";
+            List<String> values;
+
+            for (int i = 0; i < len(lines); i++)
+            {
+                // 空白削除
+                auto line_list = lines[i].split(" ");
+                String buf;
+                for (int j = 0; j < len(line_list); j++)
+                {
+                    buf += line_list[j];
+                }
+
+                // Loading order
+                int loading_order_flag = 0;
+                for (int j = 0; j < len(buf); j++)
+                {
+                    if (buf[j] == "[")
+                    {
+                        loading_order_flag++;
+                    }
+                    if (buf[j] == "]")
+                    {
+                        loading_order_flag++;
+                    }
+                }
+
+                if (loading_order_flag == 2)
+                {
+                    if (key != "")
+                    {
+                        // 辞書に追加
+                        cfg[loading_order][key] = values;
+                    }
+                    Dict<String, List<String>> dict;
+                    cfg[buf] = dict;
+                    loading_order = buf;
+                }
+                else
+                {
+                    // 値とキーに分離
+                    line_list = buf.split("=");
+
+                    if (len(line_list) == 0)
+                    {
+                        auto list_buf = line_list[0].split(",");
+                        if (len(list_buf) > 0)
+                        {
+                            values.extend(list_buf);
+                        }
+                    }
+                    else if (len(line_list) == 2)
+                    {
+
+                        // 辞書に追加
+                        if (key != "")
+                        {
+                            cfg[loading_order][key] = values;
+                        }
+
+                        // キーがない時
+                        Dict<String, List<String>> dict;
+                        if (cfg.getData(loading_order, dict) != 0)
+                        {
+                            cfg[loading_order] = dict;
+                        }
+
+                        key = line_list[0];
+                        values = line_list[1].split(",");
+                    }
+                }
+            }
+
+            // 辞書に追加
+            if (key != "")
+            {
+                cfg[loading_order][key] = values;
+            }
+        }
+    }
+
+    void removeEnv(String env_name, Dict<String, String> &cfg)
+    {
+        String path = cfg["venv_path"] + "env/" + env_name;
+        File env_dir(path);
+
+        if (env_dir.isdir())
+        {
+            String cmd = "rm -rf ";
+            cmd += path;
+
+            int letter;
+            String option;
+            char text[2];
+            text[1] = '\0';
+            print(env_name, "環境を本当に削除しますか？[y]");
+            while ((letter = getchar()) != EOF)
+            {
+                text[0] = (char)letter;
+                String moji(text);
+                if (moji == "\n")
+                {
+                    break;
+                }
+                else
+                {
+                    option += moji;
+                }
+            }
+
+            if (option == "Y" || option == "y" || option == "Yes" || option == "yes")
+            {
+                system(cmd.getChar());
+                print(env_name, "環境を削除しました。");
+            }
+            else
+            {
+                print(env_name, "環境の削除を取りやめました。");
+            }
+        }
+        else
+        {
+            print(env_name, "環境は存在しません!");
+        }
+    }
+
     void writeConfig(String cfg_file_path, Dict<String, String> cfg)
     {
         TextFile cfgFile(cfg_file_path);
+        if (!cfgFile.exists())
+        {
+            cfgFile.touch();
+        }
 
         List<String> keys = cfg.getKeys();
         for (int i = 0; i < len(cfg); i++)
@@ -357,4 +620,45 @@ namespace venv_tool
             }
         }
     }
+
+    void writePipConfig(dataObject::String pip_cfg_path, Dict<String, Dict<String, List<String>>> pip_cfgs)
+    {
+        TextFile cfgFile(pip_cfg_path);
+        if (!cfgFile.exists())
+        {
+            cfgFile.touch();
+        }
+
+        List<String> orders = pip_cfgs.getKeys();
+        for (int j = 0; j < len(pip_cfgs); j++)
+        {
+            List<String> keys = pip_cfgs[orders[j]].getKeys();
+            if (j == 0)
+            {
+                cfgFile.writeline(orders[j], WRITEMODE);
+            }
+            else
+            {
+                cfgFile.writeline(orders[j], APPENDMODE);
+            }
+            for (int i = 0; i < len(pip_cfgs[orders[j]]); i++)
+            {
+                String text = keys[i];
+                text += " = ";
+
+                auto values = pip_cfgs[orders[j]][keys[i]];
+                for (int k = 0; k < len(values); k++)
+                {
+                    if (k > 0)
+                    {
+                        text += ", ";
+                    }
+                    text += values[k];
+                }
+
+                cfgFile.writeline(text, APPENDMODE);
+            }
+        }
+    }
+
 }
