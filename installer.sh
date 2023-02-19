@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function _argAnalyzer() {
-    while getopts :a:b:c:-: OPT; do
+    while getopts :i:p:-: OPT; do
         local long_option_flag=false
 
         if [ "$OPT" == "-" ]; then
@@ -29,7 +29,11 @@ function _argAnalyzer() {
             ;;
         -i | --install_space)
             echo "インストール先が指定された"
-            INSTALL_SPACE=$value
+            local path=$value
+            if [[ "$value" == */ ]]; then
+                path=${value/%?/}
+            fi
+            INSTALL_SPACE=$path
             if [ "$long_option_flag" ]; then
                 shift
             fi
