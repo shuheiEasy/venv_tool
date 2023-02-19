@@ -1,6 +1,48 @@
 #!/bin/bash
 
-# インストールの場所取得
+function _argAnalyzer() {
+    while getopts :a:b:c:-: OPT; do
+        local long_option_flag=false
+
+        if [ "$OPT" == "-" ]; then
+            if [[ "$OPTARG" == -* ]]; then
+                echo "引数が不正です"
+                exit 1
+            fi
+            key="--$OPTARG"
+            value="${!OPTIND}"
+            long_option_flag=true
+        else
+            key="-$OPT"
+            value="$OPTARG"
+        fi
+
+        echo $key $value
+
+        case "$key" in
+        -p | --python)
+            echo "Python version が指定された"
+            PYTHON_VERSION=$value
+            if [ "$long_option_flag" ]; then
+                shift
+            fi
+            ;;
+        -i | --install_space)
+            echo "インストール先が指定された"
+            INSTALL_SPACE=$value
+            if [ "$long_option_flag" ]; then
+                shift
+            fi
+            ;;
+        *)
+            echo "その引数$keyはリストにありません"
+            exit 1
+            ;;
+        esac
+    done
+}
+
+# インストールファイルを実行した場所の取得
 resource_path=$(dirname $0)
 
 # 絶対パスか相対パスか判定
@@ -17,24 +59,32 @@ if [ ${resource_path} != "/*" ]; then
         fi
     done
 else
-    if [ ${resource_path} != "*/" ];then
+    if [ ${resource_path} != "*/" ]; then
         resource_path+="/"
     fi
 fi
+
+# 変数の一覧(規定値)
+PYTHON_VERSION=($(python3 -V))
+INSTALL_SPACE=$HOME/.venv
+
+# 引数分析
+_argAnalyzer $@
 
 # git submoduleをクローンしておく
 git submodule update --init --recursive
 
 # configファイル書き込み
-PYTHON_VERSION=($(python3 -V))
-echo -e "\ndefault_python_version = ${PYTHON_VERSION[1]}" >> src/config/env.cfg
+echo -e "\ndefault_python_version = ${PYTHON_VERSION[1]}" >>src/config/env.cfg
 
 # ビルドディレクトリ作成し移動
+if [ -d build ]; then
+    rm -rf build
+fi
 mkdir build
 cd build
 
 # インストール先作成
-INSTALL_SPACE=$HOME/venv_space
 if [ ! -d $INSTALL_SPACE ]; then
     mkdir $INSTALL_SPACE
 fi
@@ -46,13 +96,13 @@ make -j$JOBS
 make install
 
 # 補完機能のスクリプト作成
-cat scripts/complementHead.sh >> $INSTALL_SPACE/bin/complement.sh
-echo -e "" >> $INSTALL_SPACE/bin/complement.sh
-cat scripts/complementMain.sh >> $INSTALL_SPACE/bin/complement.sh
+cat scripts/complementHead.sh >>$INSTALL_SPACE/bin/complement.sh
+echo -e "" >>$INSTALL_SPACE/bin/complement.sh
+cat scripts/complementMain.sh >>$INSTALL_SPACE/bin/complement.sh
 
 # Pythonインストール
 $INSTALL_SPACE/bin/venv_tool install ${PYTHON_VERSION[1]}
 
 # bashrcに書き込み
-echo -e "\n# venvの設定" >> $HOME/.bashrc
-echo -e ". $INSTALL_SPACE/bin/complement.sh\n" >> $HOME/.bashrc
+echo -e "\n# venvの設定" >>$HOME/.bashrc
+echo -e ". $INSTALL_SPACE/bin/complement.sh\n" >>$HOME/.bashrc
