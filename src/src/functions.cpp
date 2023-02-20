@@ -77,7 +77,7 @@ namespace venv_tool
 
     void addPipConfig(List<String> args, Dict<String, Dict<String, List<String>>> &pip_cfgs)
     {
-        String loading_order = "[site]";
+        String loading_order = "[global]";
         for (int i = 3; i < len(args); i++)
         {
             auto key_and_value = args[i].split("=");
@@ -501,7 +501,7 @@ namespace venv_tool
                     String buf = "";
                     for (int j = 0; j < len(lines[i]); j++)
                     {
-                        if (lines[i][j] == "[" || lines[i][j] == "]" || lines[i][j] == " ")
+                        if (lines[i][j] == " ")
                         {
                             continue;
                         }
@@ -552,7 +552,7 @@ namespace venv_tool
                         }
                         key = buf;
                         values.clear();
-                        buf="";
+                        buf = "";
                         for (int j = 0; j < len(line_list[1]); j++)
                         {
                             if (line_list[1][j] == "[" || line_list[1][j] == "]")
@@ -561,14 +561,18 @@ namespace venv_tool
                             }
                             else if (line_list[1][j] == " ")
                             {
-                                values.append(buf);
-                                buf="";
+                                if (buf != "")
+                                {
+                                    values.append(buf);
+                                }
+                                buf = "";
                             }
                             else
                             {
                                 buf += line_list[1][j];
                             }
                         }
+                        values.append(buf);
                     }
                 }
             }
