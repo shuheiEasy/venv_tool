@@ -77,7 +77,7 @@ namespace venv_tool
 
     void addPipConfig(List<String> args, Dict<String, Dict<String, List<String>>> &pip_cfgs)
     {
-        String loading_order = "[site]";
+        String loading_order = "[global]";
         for (int i = 3; i < len(args); i++)
         {
             auto key_and_value = args[i].split("=");
@@ -474,23 +474,15 @@ namespace venv_tool
 
             for (int i = 0; i < len(lines); i++)
             {
-                // 空白削除
-                auto line_list = lines[i].split(" ");
-                String buf;
-                for (int j = 0; j < len(line_list); j++)
-                {
-                    buf += line_list[j];
-                }
-
                 // Loading order
                 int loading_order_flag = 0;
-                for (int j = 0; j < len(buf); j++)
+                for (int j = 0; j < len(lines[i]); j++)
                 {
-                    if (buf[j] == "[")
+                    if (lines[i][j] == "[")
                     {
                         loading_order_flag++;
                     }
-                    if (buf[j] == "]")
+                    if (lines[i][j] == "]")
                     {
                         loading_order_flag++;
                     }
@@ -502,19 +494,30 @@ namespace venv_tool
                     {
                         // 辞書に追加
                         cfg[loading_order][key] = values;
+                        key = "";
+                        values.clear();
                     }
                     Dict<String, List<String>> dict;
+                    String buf = "";
+                    for (int j = 0; j < len(lines[i]); j++)
+                    {
+                        if (lines[i][j] == " ")
+                        {
+                            continue;
+                        }
+                        buf += lines[i][j];
+                    }
                     cfg[buf] = dict;
                     loading_order = buf;
                 }
                 else
                 {
                     // 値とキーに分離
-                    line_list = buf.split("=");
+                    auto line_list = lines[i].split("=");
 
                     if (len(line_list) == 0)
                     {
-                        auto list_buf = line_list[0].split(",");
+                        auto list_buf = line_list[0].split(" ");
                         if (len(list_buf) > 0)
                         {
                             values.extend(list_buf);
@@ -527,6 +530,8 @@ namespace venv_tool
                         if (key != "")
                         {
                             cfg[loading_order][key] = values;
+                            key = "";
+                            values.clear();
                         }
 
                         // キーがない時
@@ -536,8 +541,38 @@ namespace venv_tool
                             cfg[loading_order] = dict;
                         }
 
-                        key = line_list[0];
-                        values = line_list[1].split(",");
+                        String buf = "";
+                        for (int j = 0; j < len(line_list[0]); j++)
+                        {
+                            if (line_list[0][j] == "[" || line_list[0][j] == "]" || line_list[0][j] == " ")
+                            {
+                                continue;
+                            }
+                            buf += line_list[0][j];
+                        }
+                        key = buf;
+                        values.clear();
+                        buf = "";
+                        for (int j = 0; j < len(line_list[1]); j++)
+                        {
+                            if (line_list[1][j] == "[" || line_list[1][j] == "]")
+                            {
+                                continue;
+                            }
+                            else if (line_list[1][j] == " ")
+                            {
+                                if (buf != "")
+                                {
+                                    values.append(buf);
+                                }
+                                buf = "";
+                            }
+                            else
+                            {
+                                buf += line_list[1][j];
+                            }
+                        }
+                        values.append(buf);
                     }
                 }
             }
@@ -651,7 +686,7 @@ namespace venv_tool
                 {
                     if (k > 0)
                     {
-                        text += ", ";
+                        text += " ";
                     }
                     text += values[k];
                 }
