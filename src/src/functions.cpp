@@ -118,7 +118,7 @@ namespace venv_tool
                     bool no_exist = true;
                     for (int k = 0; k < len(values); k++)
                     {
-                        if (values[j] == buffer[k])
+                        if (values[k] == buffer[j])
                         {
                             no_exist = false;
                             break;
@@ -585,16 +585,13 @@ namespace venv_tool
         }
     }
 
-    void removeEnv(String env_name, Dict<String, String> &cfg)
+    int removeEnvConfirm(String env_name, Dict<String, String> &cfg, EnvState &state)
     {
         String path = cfg["venv_path"] + "env/" + env_name;
         File env_dir(path);
 
         if (env_dir.isdir())
         {
-            String cmd = "rm -rf ";
-            cmd += path;
-
             int letter;
             String option;
             char text[2];
@@ -616,18 +613,44 @@ namespace venv_tool
 
             if (option == "Y" || option == "y" || option == "Yes" || option == "yes")
             {
-                system(cmd.getChar());
-                print(env_name, "環境を削除しました。");
+                String current_env_name = "";
+                if (state.getEnvState(current_env_name))
+                {
+                    if (current_env_name == env_name)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+                else
+                {
+                    return 0;
+                }
             }
             else
             {
                 print(env_name, "環境の削除を取りやめました。");
+                return 2;
             }
         }
         else
         {
             print(env_name, "環境は存在しません!");
         }
+        return 3;
+    }
+
+    void removeEnvExecute(String env_name, Dict<String, String> &cfg)
+    {
+        String path = cfg["venv_path"] + "env/" + env_name;
+        String cmd = "rm -rf ";
+        cmd += path;
+
+        system(cmd.getChar());
+        print(env_name, "環境を削除しました。");
     }
 
     void writeConfig(String cfg_file_path, Dict<String, String> cfg)

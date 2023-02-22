@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # プロジェクト名と使用する言語を設定
-project(venv_tool LANGUAGES CXX VERSION 1.0.1)
+project(venv_tool LANGUAGES CXX VERSION 1.0.2)
 
 # 静的リンクへ変更
 set(STATIC_LINK_FLAG ON CACHE BOOL ON FORCE)

@@ -41,9 +41,20 @@ case "$1" in
         $tool_path $@
         ;;
     esac
-
+    ;;
+"remove_environment")
+    echo "ERROR"
     ;;
 *)
     $tool_path $@
+    case "$?" in
+    "40")
+        $tool_path remove_environment $2
+        ;;
+    "41")
+        deactivate
+        $tool_path remove_environment $2
+        ;;
+    esac
     ;;
 esac

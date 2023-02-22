@@ -422,18 +422,36 @@ int main(int argc, char *argv[])
         }
         else if (args[0] == "remove")
         {
-            switch (len(args))
+
+            if (len(args) == 1)
             {
-            case 1:
                 print("削除する環境名が必要です");
-                break;
-            case 2:
-                removeEnv(args[1], cfgs);
-                break;
-            default:
-                print("引数が多すぎます。remove [仮想環境名]のようにしてください");
-                break;
             }
+            else if (len(args) == 2)
+            {
+                auto flag=removeEnvConfirm(args[1], cfgs, envState);
+                switch (flag)
+                {
+                case 0:
+                    return 40;
+                case 1:
+                    return 41;
+                case 2:
+                    return 42;
+                case 3:
+                    return 43;
+                default:
+                    break;
+                }
+            }
+            else
+            {
+                print("引数が多すぎます。remove [仮想環境名]のようにしてください");
+            }
+        }
+        else if (args[0] == "remove_environment")
+        {
+            removeEnvExecute(args[1], cfgs);
         }
         else if (args[0] == "version")
         {
