@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function _argAnalyzer() {
-    while getopts :i:p:-: OPT; do
+    while getopts :i:p:u-: OPT; do
         local long_option_flag=false
 
         if [ "$OPT" == "-" ]; then
@@ -17,26 +17,28 @@ function _argAnalyzer() {
             value="$OPTARG"
         fi
 
-        echo $key $value
-
         case "$key" in
         -p | --python)
             echo "Python version が指定された"
             PYTHON_VERSION=$value
-            if [ "$long_option_flag" ]; then
+            if "${long_option_flag}"; then
                 shift
             fi
             ;;
         -i | --install_space)
-            echo "インストール先が指定された"
+            echo "インストール先 が指定された"
             local path=$value
             if [[ "$value" == */ ]]; then
                 path=${value/%?/}
             fi
             INSTALL_SPACE=$path
-            if [ "$long_option_flag" ]; then
+            if "${long_option_flag}"; then
                 shift
             fi
+            ;;
+        -u | --update)
+            echo "上書き が指定された"
+            NO_UPDATE_FLAG=false
             ;;
         *)
             echo "その引数$keyはリストにありません"
@@ -71,6 +73,7 @@ fi
 # 変数の一覧(規定値)
 PYTHON_VERSION=($(python3 -V))
 INSTALL_SPACE=$HOME/.venv
+NO_UPDATE_FLAG=true
 
 # 引数分析
 _argAnalyzer $@
@@ -94,7 +97,8 @@ if [ ! -d $INSTALL_SPACE ]; then
 fi
 
 # ビルド
-JOBS=$($(grep cpu.cores /proc/cpuinfo | sort -u | sed 's/[^0-9]//g') + 1)
+JOBS=$(grep cpu.cores /proc/cpuinfo | sort -u | sed 's/[^0-9]//g')
+JOBS=$((JOBS + 1))
 cmake ../src/ -DCMAKE_INSTALL_PREFIX=$INSTALL_SPACE
 make -j$JOBS
 make install
@@ -108,5 +112,7 @@ cat scripts/complementMain.sh >>$INSTALL_SPACE/bin/complement.sh
 $INSTALL_SPACE/bin/venv_tool install ${PYTHON_VERSION[1]}
 
 # bashrcに書き込み
-echo -e "\n# venvの設定" >>$HOME/.bashrc
-echo -e ". $INSTALL_SPACE/bin/complement.sh\n" >>$HOME/.bashrc
+if "${NO_UPDATE_FLAG}"; then
+    echo -e "\n# venvの設定" >>$HOME/.bashrc
+    echo -e ". $INSTALL_SPACE/bin/complement.sh\n" >>$HOME/.bashrc
+fi

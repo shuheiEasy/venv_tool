@@ -9,7 +9,7 @@ venvを使いやすくするツール
     sudo apt-get update
     ```
     ```bash
-    sudo apt-get -y  upgrade
+    sudo apt-get -y upgrade
     ```
 2. 関連パッケージのインストール
     ```bash
