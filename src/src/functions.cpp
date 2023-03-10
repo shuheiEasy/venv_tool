@@ -52,8 +52,7 @@ namespace venv_tool
             {
                 String pth_file = cfg["venv_path"] + "env/" + active_env_name + "/lib";
 
-                FileExplorer dirs(pth_file);
-                pth_file = dirs.getDirList()[0].getPath();
+                pth_file =getDirList(pth_file)[0].getPath();
                 pth_file += "site-packages/paths.pth";
 
                 TextFile text_file(pth_file);
@@ -218,7 +217,7 @@ namespace venv_tool
         String current_path = getCurrentDirectory();
 
         // 仮想環境の一覧フォルダへ移動
-        moveCurrentDirectory(envs_path);
+        moveCurrentDir(envs_path);
 
         // 仮想環境の作成
         String cmd = venv_path + "Python/" + python_version.getVersion() + "/bin/python3 -m venv ";
@@ -234,7 +233,7 @@ namespace venv_tool
         writePipConfig(pip_cfg_path, pip_cfgs);
 
         // 元の場所へ帰る
-        moveCurrentDirectory(current_path);
+        moveCurrentDir(current_path);
 
         return 0;
     }
@@ -262,8 +261,7 @@ namespace venv_tool
         moveCurrentDirectory(cfg["venv_path"] + "env/" + env_name + "/lib");
 
         // 下層のフォルダへ移動
-        FileExplorer fe(".");
-        auto dir_list = fe.getDirList();
+        auto dir_list = getDirList(".");
         if (len(dir_list) > 1)
         {
             print("ERROR!!!");
@@ -358,8 +356,7 @@ namespace venv_tool
         // 解凍
         system(cmd.getChar());
 
-        FileExplorer tmp_dir_fe(tmp_path);
-        print(tmp_dir_fe.getFileList());
+        print(getFileList(tmp_path));
 
         // 移動
         moveCurrentDirectory(tmp_path + "/" + python_name);
@@ -399,8 +396,7 @@ namespace venv_tool
         List<String> ret;
         List<PythonVersion> pylist;
 
-        FileExplorer fe(path);
-        auto list = fe.getDirList();
+        auto list = getDirList(path);
 
         for (int i = 0; i < len(list); i++)
         {

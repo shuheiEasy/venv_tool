@@ -43,8 +43,7 @@ namespace venv_tool
 
     void EnvState::_getEnvList()
     {
-        FileExplorer fe(venv_virtual_env_path);
-        auto env_dir_list = fe.getDirList();
+        auto env_dir_list = getDirList(venv_virtual_env_path);
 
         env_name_list.clear();
         env_path_list.clear();

@@ -6,11 +6,9 @@ venvを使いやすくするツール
 
 1. システムの更新
     ```bash
-    sudo apt-get update
+    sudo apt-get update && sudo apt-get -y upgrade
     ```
-    ```bash
-    sudo apt-get -y upgrade
-    ```
+
 2. 関連パッケージのインストール
     ```bash
     sudo apt-get install cmake \
