@@ -214,7 +214,7 @@ namespace venv_tool
         String envs_path = venv_path + "env/";
 
         // カレントディレクトリ取得
-        String current_path = getCurrentDirectory();
+        String current_path = getCurrentDir();
 
         // 仮想環境の一覧フォルダへ移動
         moveCurrentDir(envs_path);
@@ -238,27 +238,15 @@ namespace venv_tool
         return 0;
     }
 
-    String getCurrentDirectory(void)
-    {
-        char buf[1024];
-        getcwd(buf, 1024);
-        return String(buf);
-    }
-
     void help_text(void)
     {
         print("venv_tool version ", VENV_TOOL_VERSION);
     }
 
-    void moveCurrentDirectory(String path)
-    {
-        chdir(path.getChar());
-    }
-
     void setEnvironmentPath(String env_name, String append_dir_path, Dict<String, String> &cfg)
     {
         // 仮想環境のlibフォルダへ移動
-        moveCurrentDirectory(cfg["venv_path"] + "env/" + env_name + "/lib");
+        moveCurrentDir(cfg["venv_path"] + "env/" + env_name + "/lib");
 
         // 下層のフォルダへ移動
         auto dir_list = getDirList(".");
@@ -270,7 +258,7 @@ namespace venv_tool
         {
             return;
         }
-        moveCurrentDirectory(dir_list[0].getPath());
+        moveCurrentDir(dir_list[0].getPath());
 
         // PATHを通す
         TextFile path_file("site-packages/envPath.pth");
@@ -320,7 +308,7 @@ namespace venv_tool
         }
 
         // カレントディレクトリ取得
-        auto current_dir = getCurrentDirectory();
+        auto current_dir = getCurrentDir();
 
         // URL作成
         String python_name = "Python-";
@@ -359,7 +347,7 @@ namespace venv_tool
         print(getFileList(tmp_path));
 
         // 移動
-        moveCurrentDirectory(tmp_path + "/" + python_name);
+        moveCurrentDir(tmp_path + "/" + python_name);
 
         // configure
         cmd = "./configure";
@@ -378,7 +366,7 @@ namespace venv_tool
         system("make install");
 
         // 移動
-        moveCurrentDirectory(current_dir);
+        moveCurrentDir(current_dir);
 
         // 削除コマンド作成
         cmd = "rm -rf ";

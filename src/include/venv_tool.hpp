@@ -83,14 +83,8 @@ namespace venv_tool
     // 仮想環境の作成
     int createEnv(dataObject::String env_name, dataObject::String venv_path, PythonVersion python_version);
 
-    // カレントディレクトリ取得
-    dataObject::String getCurrentDirectory(void);
-
     // Help文出力
     void help_text(void);
-
-    // カレントディレクトリ移動
-    void moveCurrentDirectory(dataObject::String path);
 
     // 仮想環境へパスを通す
     void setEnvironmentPath(dataObject::String env_name, dataObject::String append_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
