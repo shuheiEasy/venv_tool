@@ -6,9 +6,9 @@ namespace venv_tool
     using namespace fileSystem;
     using namespace logSystem;
 
-    EnvState::EnvState(Dict<String, String> cfg)
+    EnvState::EnvState(const dataObject::String &venvPath)
     {
-        venv_path = cfg["venv_path"];
+        venv_path = venvPath;
         venv_virtual_env_path = venv_path + "env";
         update();
     }
@@ -43,8 +43,7 @@ namespace venv_tool
 
     void EnvState::_getEnvList()
     {
-        FileExplorer fe(venv_virtual_env_path);
-        auto env_dir_list = fe.getDirList();
+        auto env_dir_list = getDirList(venv_virtual_env_path);
 
         env_name_list.clear();
         env_path_list.clear();

@@ -1,7 +1,7 @@
 #ifndef VENV_TOOL_CONFIG_H
 #define VENV_TOOL_CONFIG_H
 
-#define VENV_TOOL_ENV_CONFIG_FILE "@CMAKE_INSTALL_PREFIX@/config/env.cfg"
+#define VENV_TOOL_ENV_CONFIG_FILE "@CMAKE_INSTALL_PREFIX@/config/env.json"
 #define VENV_TOOL_VERSION "@PROJECT_VERSION@"
 
 #endif

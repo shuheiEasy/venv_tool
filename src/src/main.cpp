@@ -13,16 +13,21 @@ int main(int argc, char *argv[])
         args.append(argv[i]);
     }
 
-    // 環境変数
-    String env_cfg_path(VENV_TOOL_ENV_CONFIG_FILE);
-    Dict<String, String> cfgs;
-    readConfig(env_cfg_path, cfgs);
+    // 環境変数の読込
+    fileSystem::JsonFile env_config(VENV_TOOL_ENV_CONFIG_FILE);
+    if (env_config.read() < 0)
+    {
+        print("JSONファイルが読めません");
+        return -1;
+    }
+
+    Dict<String, Any> &configs = env_config.getDict();
 
     // 環境の確認
-    checkEnv(env_cfg_path, cfgs);
+    checkEnv(env_config);
 
     // 状態の取得
-    venv_tool::EnvState envState(cfgs);
+    venv_tool::EnvState envState(*(configs["venv_path"].getData<String>()));
 
     // 引数解析
     if (len(args) == 0)
@@ -35,7 +40,7 @@ int main(int argc, char *argv[])
 
         if (args[0] == "activate")
         {
-            auto flag = activateEnv(args[1], cfgs, envState);
+            auto flag = activateEnv(args[1], *(configs["venv_path"].getData<String>()), envState);
             if (flag)
             {
                 return 10;
@@ -49,10 +54,9 @@ int main(int argc, char *argv[])
         {
             if (len(args) == 1)
             {
-                auto keys = cfgs.getKeys();
-                for (int i = 0; i < len(keys); i++)
+                for (auto e : configs)
                 {
-                    print(keys[i], " = ", cfgs[keys[i]]);
+                    print(e.key, " : ", e.value);
                 }
             }
             else
@@ -65,7 +69,7 @@ int main(int argc, char *argv[])
                     {
                         Dict<String, Dict<String, List<String>>> pip_cfgs;
 
-                        String pip_cfg_path = cfgs["venv_path"];
+                        String pip_cfg_path = *(configs["venv_path"].getData<String>());
                         if (envState.getEnvState(env_name))
                         {
                             pip_cfg_path += "env/";
@@ -114,7 +118,7 @@ int main(int argc, char *argv[])
                             {
                                 if (envState.getEnvState(env_name))
                                 {
-                                    String pip_cfg_path = cfgs["venv_path"] + "env/" + env_name + "/pip.conf";
+                                    String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "env/" + env_name + "/pip.conf";
                                     Dict<String, Dict<String, List<String>>> pip_cfgs;
                                     readPipConfig(pip_cfg_path, pip_cfgs);
                                     addPipConfig(args, pip_cfgs);
@@ -132,7 +136,7 @@ int main(int argc, char *argv[])
                                         writePipConfig(pip_cfg_path, pip_cfgs);
                                     }
 
-                                    String pip_cfg_path = cfgs["venv_path"] + "config/pip.conf";
+                                    String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "config/pip.conf";
                                     Dict<String, Dict<String, List<String>>> pip_cfgs;
                                     readPipConfig(pip_cfg_path, pip_cfgs);
                                     addPipConfig(args, pip_cfgs);
@@ -157,14 +161,14 @@ int main(int argc, char *argv[])
                 print("バージョン情報が足りません");
                 break;
             case 2:
-                ret = createEnv(args[1], cfgs["venv_path"], PythonVersion(cfgs["default_python_version"]));
+                ret = createEnv(args[1], *(configs["venv_path"].getData<String>()), PythonVersion(*(configs["default_python_version"].getData<String>())));
                 if (ret == 0)
                 {
                     return 30;
                 }
                 break;
             case 3:
-                ret = createEnv(args[1], cfgs["venv_path"], PythonVersion(args[2]));
+                ret = createEnv(args[1], *(configs["venv_path"].getData<String>()), PythonVersion(args[2]));
                 if (ret == 0)
                 {
                     return 30;
@@ -312,7 +316,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                auto ret = pythonInstall(cfgs["venv_path"], PythonVersion(args[1]));
+                auto ret = pythonInstall(*(configs["venv_path"].getData<String>()), PythonVersion(args[1]));
                 if (ret < 0)
                 {
                     print("すでにインストールされています");
@@ -323,7 +327,7 @@ int main(int argc, char *argv[])
         {
             if (len(args) == 1)
             {
-                auto paths = pathList(cfgs);
+                auto paths = pathList(*(configs["venv_path"].getData<String>()));
                 for (int i = 1; i < len(paths); i++)
                 {
                     print(paths[i]);
@@ -333,11 +337,11 @@ int main(int argc, char *argv[])
             {
                 if (args[1] == "add")
                 {
-                    addPath(".", cfgs, envState);
+                    addPath(".", *(configs["venv_path"].getData<String>()), envState);
                 }
                 else if (args[1] == "list")
                 {
-                    auto paths = pathList(cfgs);
+                    auto paths = pathList(*(configs["venv_path"].getData<String>()));
                     paths.del(0);
                     printList(paths);
                 }
@@ -348,7 +352,7 @@ int main(int argc, char *argv[])
                 {
                     for (int i = 2; i < len(args); i++)
                     {
-                        addPath(args[i], cfgs, envState);
+                        addPath(args[i], *(configs["venv_path"].getData<String>()), envState);
                     }
                 }
                 else
@@ -359,12 +363,13 @@ int main(int argc, char *argv[])
         }
         else if (args[0] == "python")
         {
-            List<String> pythons = pythonList(cfgs);
+            List<String> pythons = pythonList(*(configs["venv_path"].getData<String>()));
             if (len(args) == 1)
             {
+                String default_python_version = *(configs["default_python_version"].getData<String>());
                 for (int i = 0; i < len(pythons); i++)
                 {
-                    if (cfgs["default_python_version"] == pythons[i])
+                    if (default_python_version == pythons[i])
                     {
                         print("* ", pythons[i]);
                     }
@@ -402,8 +407,8 @@ int main(int argc, char *argv[])
 
                     if (exist_flag)
                     {
-                        cfgs["default_python_version"] = args[2];
-                        writeConfig(env_cfg_path, cfgs);
+                        configs["default_python_version"] = args[2];
+                        env_config.write();
                     }
                     else
                     {
@@ -429,7 +434,7 @@ int main(int argc, char *argv[])
             }
             else if (len(args) == 2)
             {
-                auto flag=removeEnvConfirm(args[1], cfgs, envState);
+                auto flag = removeEnvConfirm(args[1], *(configs["venv_path"].getData<String>()), envState);
                 switch (flag)
                 {
                 case 0:
@@ -451,7 +456,7 @@ int main(int argc, char *argv[])
         }
         else if (args[0] == "remove_environment")
         {
-            removeEnvExecute(args[1], cfgs);
+            removeEnvExecute(args[1], *(configs["venv_path"].getData<String>()));
         }
         else if (args[0] == "version")
         {
