@@ -57,7 +57,7 @@ namespace venv_tool
         void _getEnvState();
 
     public:
-        EnvState(dataObject::Dict<dataObject::String, dataObject::String> cfg);
+        EnvState(const dataObject::String &venvPath);
         ~EnvState();
         dataObject::List<dataObject::String> getEnvNameList() const;
         dataObject::List<dataObject::String> getEnvPathList() const;
@@ -66,16 +66,16 @@ namespace venv_tool
     };
 
     // 仮想環境の起動
-    bool activateEnv(dataObject::String env_name, dataObject::Dict<dataObject::String, dataObject::String> &cfg, EnvState &state);
+    bool activateEnv(dataObject::String env_name, dataObject::String &venv_path, EnvState &state);
 
     // パスの追加
-    void addPath(dataObject::String path, dataObject::Dict<dataObject::String, dataObject::String> &cfg, EnvState &state);
+    void addPath(dataObject::String path, dataObject::String &venv_path, EnvState &state);
 
     // Pip設定の追加
     void addPipConfig(dataObject::List<dataObject::String> args, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
     // 実行環境の確認
     // 状況に応じて初期化する
-    void checkEnv(dataObject::String env_cfg_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
+    void checkEnv(fileSystem::JsonFile &cfg_json_file);
 
     // 外部コマンド実行
     dataObject::List<dataObject::String> command(dataObject::String cmd);
@@ -90,7 +90,7 @@ namespace venv_tool
     void setEnvironmentPath(dataObject::String env_name, dataObject::String append_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
 
     // 仮想環境へ通っているパスの一覧を取得
-    dataObject::List<dataObject::String> pathList(dataObject::Dict<dataObject::String, dataObject::String> &cfg);
+    dataObject::List<dataObject::String> pathList(dataObject::String &venv_path);
 
     // リストを標準出力する
     void printList(dataObject::List<dataObject::String> list);
@@ -99,22 +99,16 @@ namespace venv_tool
     int pythonInstall(dataObject::String venv_path, PythonVersion version);
 
     // インストールしたPythonのバージョンを取得
-    dataObject::List<dataObject::String> pythonList(dataObject::Dict<dataObject::String, dataObject::String> &cfg);
-
-    // 設定ファイル読込
-    void readConfig(dataObject::String cfg_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
+    dataObject::List<dataObject::String> pythonList(dataObject::String &venv_path);
 
     // pip設定ファイル読込
     void readPipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &cfg);
 
     // 仮想環境の削除のUI
-    int removeEnvConfirm(dataObject::String env_name, dataObject::Dict<dataObject::String, dataObject::String> &cfg, EnvState &state);
+    int removeEnvConfirm(dataObject::String env_name, dataObject::String &venv_path, EnvState &state);
 
     // 仮想環境の削除の実行部分
-    void removeEnvExecute(dataObject::String env_name, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
-
-    // 設定ファイル書込
-    void writeConfig(dataObject::String cfg_dir_path, dataObject::Dict<dataObject::String, dataObject::String> cfg);
+    void removeEnvExecute(dataObject::String env_name, dataObject::String &venv_path);
 
     // pip設定ファイル書込
     void writePipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> pip_cfgs);

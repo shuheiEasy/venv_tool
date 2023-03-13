@@ -79,10 +79,10 @@ NO_UPDATE_FLAG=true
 _argAnalyzer $@
 
 # git submoduleをクローンしておく
-git submodule update --init --recursive
+git submodule update --init --recursive --depth 1
 
 # configファイル書き込み
-echo -e "\ndefault_python_version = ${PYTHON_VERSION[1]}" >>src/config/env.cfg
+echo -e "\"default_python_version\" : \"${PYTHON_VERSION[1]}\"\n}" >>src/config/env.json
 
 # ビルドディレクトリ作成し移動
 if [ -d build ]; then

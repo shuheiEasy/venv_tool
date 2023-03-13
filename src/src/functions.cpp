@@ -6,9 +6,9 @@ namespace venv_tool
     using namespace fileSystem;
     using namespace logSystem;
 
-    bool activateEnv(String env_name, Dict<String, String> &cfg, EnvState &state)
+    bool activateEnv(String env_name, String &venv_path, EnvState &state)
     {
-        String cmd = cfg["venv_path"] + "env/" + env_name + "/bin/activate";
+        String cmd = venv_path + "env/" + env_name + "/bin/activate";
         print(cmd);
 
         String current_env_name = "";
@@ -29,13 +29,13 @@ namespace venv_tool
         }
     }
 
-    void addPath(String path, Dict<String, String> &cfg, EnvState &state)
+    void addPath(String path, String &venv_path, EnvState &state)
     {
         String active_env_name;
         if (state.getEnvState(active_env_name))
         {
             File dir(path);
-            auto exist_paths = pathList(cfg);
+            auto exist_paths = pathList(venv_path);
             bool write_flag = true;
 
             for (int i = 0; i < exist_paths.getSize(); i++)
@@ -50,7 +50,7 @@ namespace venv_tool
 
             if (write_flag)
             {
-                String pth_file = cfg["venv_path"] + "env/" + active_env_name + "/lib";
+                String pth_file = venv_path + "env/" + active_env_name + "/lib";
 
                 pth_file =getDirList(pth_file)[0].getPath();
                 pth_file += "site-packages/paths.pth";
@@ -134,21 +134,17 @@ namespace venv_tool
         }
     }
 
-    void checkEnv(dataObject::String env_cfg_path, Dict<String, String> &cfg)
+    void checkEnv(fileSystem::JsonFile &cfg_json_file)
     {
-        auto venv_path = cfg["venv_path"];
-        File venv_space(venv_path);
-        if (venv_path != venv_space.getPath())
+        auto &cfg=cfg_json_file.getDict();
+
+        String *venv_path = cfg["venv_path"].getData<String>();
+        File venv_space(*venv_path);
+
+        if (*venv_path != venv_space.getPath())
         {
             cfg["venv_path"] = venv_space.getPath();
-            TextFile cfg_file(env_cfg_path);
-            cfg_file.write("", WRITEMODE, false);
-            List<String> cfg_keys = cfg.getKeys();
-            for (int i = 0; i < len(cfg_keys); i++)
-            {
-                auto key = cfg_keys[i];
-                cfg_file.writeline(key + " = " + cfg[key]);
-            }
+            cfg_json_file.write();
         }
 
         if (!venv_space.exists())
@@ -270,10 +266,10 @@ namespace venv_tool
         path_file.writeline(append_dir_path);
     }
 
-    List<String> pathList(Dict<String, String> &cfg)
+    List<String> pathList(String &venv_path)
     {
         String cmd = "python3 ";
-        cmd += cfg["venv_path"] + "bin/getPyPath.py";
+        cmd += venv_path + "bin/getPyPath.py";
         return command(cmd);
     }
 
@@ -378,9 +374,9 @@ namespace venv_tool
         return 0;
     }
 
-    List<String> pythonList(Dict<String, String> &cfg)
+    List<String> pythonList(String &venv_path)
     {
-        auto path = cfg["venv_path"] + "Python";
+        auto path = venv_path + "Python";
         List<String> ret;
         List<PythonVersion> pylist;
 
@@ -411,34 +407,6 @@ namespace venv_tool
         }
 
         return ret;
-    }
-
-    void readConfig(String cfg_file_path, Dict<String, String> &cfg)
-    {
-        TextFile cfgFile(cfg_file_path);
-        auto lines = cfgFile.readlines();
-
-        for (int i = 0; i < len(lines); i++)
-        {
-            // 空白削除
-            auto line_list = lines[i].split(" ");
-            String buf;
-            for (int i = 0; i < len(line_list); i++)
-            {
-                buf += line_list[i];
-            }
-
-            // 値とキーに分離
-            line_list = buf.split("=");
-
-            if (len(line_list) != 2)
-            {
-                continue;
-            }
-
-            // 辞書に追加
-            cfg[line_list[0]] = line_list[1];
-        }
     }
 
     void readPipConfig(String pip_cfg_path, Dict<String, Dict<String, List<String>>> &cfg)
@@ -569,9 +537,9 @@ namespace venv_tool
         }
     }
 
-    int removeEnvConfirm(String env_name, Dict<String, String> &cfg, EnvState &state)
+    int removeEnvConfirm(String env_name, String &venv_path, EnvState &state)
     {
-        String path = cfg["venv_path"] + "env/" + env_name;
+        String path = venv_path + "env/" + env_name;
         File env_dir(path);
 
         if (env_dir.isdir())
@@ -627,40 +595,14 @@ namespace venv_tool
         return 3;
     }
 
-    void removeEnvExecute(String env_name, Dict<String, String> &cfg)
+    void removeEnvExecute(String env_name, String &venv_path)
     {
-        String path = cfg["venv_path"] + "env/" + env_name;
+        String path = venv_path + "env/" + env_name;
         String cmd = "rm -rf ";
         cmd += path;
 
         system(cmd.getChar());
         print(env_name, "環境を削除しました。");
-    }
-
-    void writeConfig(String cfg_file_path, Dict<String, String> cfg)
-    {
-        TextFile cfgFile(cfg_file_path);
-        if (!cfgFile.exists())
-        {
-            cfgFile.touch();
-        }
-
-        List<String> keys = cfg.getKeys();
-        for (int i = 0; i < len(cfg); i++)
-        {
-            String text = keys[i];
-            text += " = ";
-            text += cfg[keys[i]];
-
-            if (i == 0)
-            {
-                cfgFile.writeline(text, WRITEMODE);
-            }
-            else
-            {
-                cfgFile.writeline(text, APPENDMODE);
-            }
-        }
     }
 
     void writePipConfig(dataObject::String pip_cfg_path, Dict<String, Dict<String, List<String>>> pip_cfgs)

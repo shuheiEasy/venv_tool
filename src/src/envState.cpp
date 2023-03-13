@@ -6,9 +6,9 @@ namespace venv_tool
     using namespace fileSystem;
     using namespace logSystem;
 
-    EnvState::EnvState(Dict<String, String> cfg)
+    EnvState::EnvState(const dataObject::String &venvPath)
     {
-        venv_path = cfg["venv_path"];
+        venv_path = venvPath;
         venv_virtual_env_path = venv_path + "env";
         update();
     }
