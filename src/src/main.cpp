@@ -61,89 +61,15 @@ int main(int argc, char *argv[])
             }
             else
             {
-                if (args[1] == "pip")
+                if (args[1] == "add")
                 {
-                    String env_name;
-
                     if (len(args) == 2)
                     {
-                        Dict<String, Dict<String, List<String>>> pip_cfgs;
-
-                        String pip_cfg_path = *(configs["venv_path"].getData<String>());
-                        if (envState.getEnvState(env_name))
-                        {
-                            pip_cfg_path += "env/";
-                            pip_cfg_path += env_name;
-                        }
-                        else
-                        {
-                            pip_cfg_path += "config";
-                        }
-                        pip_cfg_path += "/pip.conf";
-
-                        readPipConfig(pip_cfg_path, pip_cfgs);
-
-                        auto orders = pip_cfgs.getKeys();
-                        for (int i = 0; i < len(orders); i++)
-                        {
-                            print(orders[i]);
-                            auto keys = pip_cfgs[orders[i]].getKeys();
-
-                            for (int j = 0; j < len(keys); j++)
-                            {
-                                String outtext;
-                                auto buffer_list = pip_cfgs[orders[i]][keys[j]];
-                                for (int k = 0; k < len(buffer_list); k++)
-                                {
-                                    if (k > 0)
-                                    {
-                                        outtext += ", ";
-                                    }
-                                    outtext += buffer_list[k];
-                                }
-
-                                print(keys[j], " = ", outtext);
-                            }
-                        }
+                        print("値が指定されていません");
                     }
                     else
                     {
-                        if (len(args) == 3)
-                        {
-                            print("引数が足りません");
-                        }
-                        else
-                        {
-                            if (args[2] == "add")
-                            {
-                                if (envState.getEnvState(env_name))
-                                {
-                                    String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "env/" + env_name + "/pip.conf";
-                                    Dict<String, Dict<String, List<String>>> pip_cfgs;
-                                    readPipConfig(pip_cfg_path, pip_cfgs);
-                                    addPipConfig(args, pip_cfgs);
-                                    writePipConfig(pip_cfg_path, pip_cfgs);
-                                }
-                                else
-                                {
-                                    auto env_path_list = envState.getEnvPathList();
-                                    for (int i = 0; i < env_path_list.getSize(); i++)
-                                    {
-                                        String pip_cfg_path = env_path_list[i] + "pip.conf";
-                                        Dict<String, Dict<String, List<String>>> pip_cfgs;
-                                        readPipConfig(pip_cfg_path, pip_cfgs);
-                                        addPipConfig(args, pip_cfgs);
-                                        writePipConfig(pip_cfg_path, pip_cfgs);
-                                    }
-
-                                    String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "config/pip.conf";
-                                    Dict<String, Dict<String, List<String>>> pip_cfgs;
-                                    readPipConfig(pip_cfg_path, pip_cfgs);
-                                    addPipConfig(args, pip_cfgs);
-                                    writePipConfig(pip_cfg_path, pip_cfgs);
-                                }
-                            }
-                        }
+                        addConfig(args.slice(2, args.getSize()), env_config);
                     }
                 }
                 else
@@ -361,12 +287,102 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        else if (args[0] == "pip")
+        {
+            String env_name;
+
+            if (len(args) == 1)
+            {
+                Dict<String, Dict<String, List<String>>> pip_cfgs;
+
+                String pip_cfg_path = *(configs["venv_path"].getData<String>());
+                if (envState.getEnvState(env_name))
+                {
+                    pip_cfg_path += "env/";
+                    pip_cfg_path += env_name;
+                }
+                else
+                {
+                    pip_cfg_path += "config";
+                }
+                pip_cfg_path += "/pip.conf";
+
+                readPipConfig(pip_cfg_path, pip_cfgs);
+
+                auto orders = pip_cfgs.getKeys();
+                for (int i = 0; i < len(orders); i++)
+                {
+                    print(orders[i]);
+                    auto keys = pip_cfgs[orders[i]].getKeys();
+
+                    for (int j = 0; j < len(keys); j++)
+                    {
+                        String outtext;
+                        auto buffer_list = pip_cfgs[orders[i]][keys[j]];
+                        for (int k = 0; k < len(buffer_list); k++)
+                        {
+                            if (k > 0)
+                            {
+                                outtext += ", ";
+                            }
+                            outtext += buffer_list[k];
+                        }
+
+                        print(keys[j], " = ", outtext);
+                    }
+                }
+            }
+            else
+            {
+                if (len(args) == 2)
+                {
+                    print("引数が足りません");
+                }
+                else
+                {
+                    if (args[1] == "add")
+                    {
+                        if (envState.getEnvState(env_name))
+                        {
+                            String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "env/" + env_name + "/pip.conf";
+                            Dict<String, Dict<String, List<String>>> pip_cfgs;
+                            readPipConfig(pip_cfg_path, pip_cfgs);
+                            addPipConfig(args, pip_cfgs);
+                            writePipConfig(pip_cfg_path, pip_cfgs);
+                        }
+                        else
+                        {
+                            auto env_path_list = envState.getEnvPathList();
+                            for (int i = 0; i < env_path_list.getSize(); i++)
+                            {
+                                String pip_cfg_path = env_path_list[i] + "pip.conf";
+                                Dict<String, Dict<String, List<String>>> pip_cfgs;
+                                readPipConfig(pip_cfg_path, pip_cfgs);
+                                addPipConfig(args, pip_cfgs);
+                                writePipConfig(pip_cfg_path, pip_cfgs);
+                            }
+
+                            String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "config/pip.conf";
+                            Dict<String, Dict<String, List<String>>> pip_cfgs;
+                            readPipConfig(pip_cfg_path, pip_cfgs);
+                            addPipConfig(args, pip_cfgs);
+                            writePipConfig(pip_cfg_path, pip_cfgs);
+                        }
+                    }
+                }
+            }
+        }
         else if (args[0] == "python")
         {
             List<String> pythons = pythonList(*(configs["venv_path"].getData<String>()));
             if (len(args) == 1)
             {
-                String default_python_version = *(configs["default_python_version"].getData<String>());
+                String default_python_version = "none";
+                if (configs.exist("default_python_version"))
+                {
+                    default_python_version = *(configs["default_python_version"].getData<String>());
+                }
+
                 for (int i = 0; i < len(pythons); i++)
                 {
                     if (default_python_version == pythons[i])
@@ -394,25 +410,21 @@ int main(int argc, char *argv[])
             {
                 if (args[1] == "default")
                 {
-                    // 存在確認
-                    bool exist_flag = false;
-                    for (int i = 0; i < len(pythons); i++)
+                    PythonVersion verson(args[2]);
+                    if (verson.getMajor() < 0)
                     {
-                        if (args[2] == pythons[i])
-                        {
-                            exist_flag = true;
-                            break;
-                        }
-                    }
-
-                    if (exist_flag)
-                    {
-                        configs["default_python_version"] = args[2];
-                        env_config.write();
+                        print("Pythonのバージョン指定がおかしいです");
                     }
                     else
                     {
-                        print("指定したPython ", args[2], "はインストールされていません");
+                        // 指定したバージョンが無い場合がなかったらインストール
+                        pythonInstall(*(configs["venv_path"].getData<String>()), verson);
+
+                        print("規定のPythonのバージョンを", args[2], "に指定しました");
+
+                        // 設定ファイルに書き込み
+                        configs["default_python_version"] = args[2];
+                        env_config.write();
                     }
                 }
                 else

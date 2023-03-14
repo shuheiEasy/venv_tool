@@ -68,11 +68,15 @@ namespace venv_tool
     // 仮想環境の起動
     bool activateEnv(dataObject::String env_name, dataObject::String &venv_path, EnvState &state);
 
+    // 設定項目の追加
+    void addConfig(dataObject::List<dataObject::String> args, fileSystem::JsonFile &config_file);
+
     // パスの追加
     void addPath(dataObject::String path, dataObject::String &venv_path, EnvState &state);
 
     // Pip設定の追加
     void addPipConfig(dataObject::List<dataObject::String> args, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
+
     // 実行環境の確認
     // 状況に応じて初期化する
     void checkEnv(fileSystem::JsonFile &cfg_json_file);

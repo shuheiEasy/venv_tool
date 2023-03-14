@@ -33,7 +33,7 @@ _venv_complement() {
 
     case "$COMP_CWORD" in
     "1")
-        COMPREPLY=($(compgen -W "activate configure create deactivate env install path python remove version" -- $cur))
+        COMPREPLY=($(compgen -W "activate configure create deactivate env install path pip python remove version" -- $cur))
         ;;
     "2")
         case "${COMP_WORDS[1]}" in
@@ -41,13 +41,16 @@ _venv_complement() {
             COMPREPLY=($(compgen -W "$env_list" -- $cur))
             ;;
         "configure")
-            COMPREPLY=($(compgen -W "pip" -- $cur))
+            COMPREPLY=($(compgen -W "add" -- $cur))
             ;;
         "env")
             COMPREPLY=($(compgen -W "list path show state" -- $cur))
             ;;
         "path")
             COMPREPLY=($(compgen -W "add list" -- $cur))
+            ;;
+        "pip")
+            COMPREPLY=($(compgen -W "add" -- $cur))
             ;;
         "python")
             COMPREPLY=($(compgen -W "default list" -- $cur))
@@ -56,13 +59,6 @@ _venv_complement() {
         ;;
     "3")
         case "${COMP_WORDS[1]}" in
-        "configure")
-            case "${COMP_WORDS[2]}" in
-            "pip")
-                COMPREPLY=($(compgen -W "add" -- $cur))
-                ;;
-            esac
-            ;;
         "create")
             COMPREPLY=($(compgen -W "$py_list_text" -- $cur))
             ;;
