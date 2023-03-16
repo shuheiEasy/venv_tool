@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # プロジェクト名と使用する言語を設定
-project(venv_tool LANGUAGES CXX VERSION 1.1.0)
+project(venv_tool LANGUAGES CXX VERSION 1.2.0)
 
 # 静的リンクへ変更
 set(STATIC_LINK_FLAG ON CACHE BOOL ON FORCE)
@@ -27,8 +27,8 @@ configure_file (
   "${PROJECT_BINARY_DIR}/scripts/complementHead.sh"
   )
 configure_file (
-  "scripts/venvTool.sh"
-  "${PROJECT_BINARY_DIR}/bin/venvTool.sh"
+  "scripts/venv_tool"
+  "${PROJECT_BINARY_DIR}/bin/venv_tool"
   )
 # シェルスクリプトのコピー
 file(COPY "scripts/complementMain.sh" DESTINATION ${PROJECT_BINARY_DIR}/scripts)
@@ -45,13 +45,13 @@ include_directories(${PROJECT_BINARY_DIR}/include)
 file(GLOB_RECURSE source_list "src/*.cpp")
 
 # 実行ファイルをソースから作成
-add_executable(${PROJECT_NAME} ${source_list})
+add_executable(${PROJECT_NAME}_exe ${source_list})
 
 # リンク
-target_link_libraries(${PROJECT_NAME} ${azagon_LIBS})
+target_link_libraries(${PROJECT_NAME}_exe ${azagon_LIBS})
 
 # インストール
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME}_exe RUNTIME DESTINATION bin)
 install(FILES ${PROJECT_BINARY_DIR}/config/env.json DESTINATION config PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
-install(FILES ${PROJECT_BINARY_DIR}/bin/venvTool.sh DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+install(FILES ${PROJECT_BINARY_DIR}/bin/venv_tool DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
 install(FILES ${PROJECT_BINARY_DIR}/scripts/getPyPath.py DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

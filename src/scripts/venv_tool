@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # venv_tool実行ファイルの場所取得
-tool_path="@CMAKE_INSTALL_PREFIX@/bin/venv_tool"
+tool_path="@CMAKE_INSTALL_PREFIX@/bin/venv_tool_exe"
 
 # 引数による場合分け
 case "$1" in
