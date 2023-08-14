@@ -17,7 +17,7 @@ venvを使いやすくするツール
     libffi-dev libgdbm-dev liblzma-dev \
     libncursesw5-dev libreadline-dev libsqlite3-dev \
     libssl-dev tk-dev uuid-dev \
-    wget zlib1g-dev
+    wget zlib1g-dev libcurl4-openssl-dev
     ```
 
 3. リポジトリのクローン

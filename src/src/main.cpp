@@ -271,6 +271,10 @@ int main(int argc, char *argv[])
                     paths.del(0);
                     printList(paths);
                 }
+                else if (args[1] == "remove")
+                {
+                    removePath(".", *(configs["venv_path"].getData<String>()), envState);
+                }
             }
             else
             {
@@ -279,6 +283,13 @@ int main(int argc, char *argv[])
                     for (int i = 2; i < len(args); i++)
                     {
                         addPath(args[i], *(configs["venv_path"].getData<String>()), envState);
+                    }
+                }
+                else if (args[1] == "remove")
+                {
+                    for (int i = 2; i < len(args); i++)
+                    {
+                        removePath(args[i], *(configs["venv_path"].getData<String>()), envState);
                     }
                 }
                 else
@@ -368,6 +379,39 @@ int main(int argc, char *argv[])
                             addPipConfig(args, pip_cfgs);
                             writePipConfig(pip_cfg_path, pip_cfgs);
                         }
+                    }
+                    else if (args[1] == "remove")
+                    {
+                        if (envState.getEnvState(env_name))
+                        {
+                            String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "env/" + env_name + "/pip.conf";
+                            Dict<String, Dict<String, List<String>>> pip_cfgs;
+                            readPipConfig(pip_cfg_path, pip_cfgs);
+                            removePipConfig(args, pip_cfgs);
+                            writePipConfig(pip_cfg_path, pip_cfgs);
+                        }
+                        else
+                        {
+                            auto env_path_list = envState.getEnvPathList();
+                            for (int i = 0; i < env_path_list.getSize(); i++)
+                            {
+                                String pip_cfg_path = env_path_list[i] + "pip.conf";
+                                Dict<String, Dict<String, List<String>>> pip_cfgs;
+                                readPipConfig(pip_cfg_path, pip_cfgs);
+                                removePipConfig(args, pip_cfgs);
+                                writePipConfig(pip_cfg_path, pip_cfgs);
+                            }
+
+                            String pip_cfg_path = *(configs["venv_path"].getData<String>()) + "config/pip.conf";
+                            Dict<String, Dict<String, List<String>>> pip_cfgs;
+                            readPipConfig(pip_cfg_path, pip_cfgs);
+                            removePipConfig(args, pip_cfgs);
+                            writePipConfig(pip_cfg_path, pip_cfgs);
+                        }
+                    }
+                    else
+                    {
+                        print("pipコマンドの第2引数は「add」もしくは「remove」です。");
                     }
                 }
             }

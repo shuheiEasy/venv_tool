@@ -666,6 +666,77 @@ namespace venv_tool
         print(env_name, "環境を削除しました。");
     }
 
+    void removePath(String path, String &venv_path, EnvState &state)
+    {
+        String active_env_name;
+        if (state.getEnvState(active_env_name))
+        {
+            // パスの生成
+            String pth_file = venv_path + "env/" + active_env_name + "/lib";
+            pth_file = getDirList(pth_file)[0].getPath();
+            pth_file += "site-packages/paths.pth";
+
+            // Pathファイル
+            TextFile path_file(pth_file);
+            if (!path_file.exists())
+            {
+                path_file.touch();
+            }
+
+            // Path確認
+            List<String> path_list = path_file.readlines();
+            File dir(path);
+            bool write_flag = false;
+            int path_id = 0;
+
+            while (path_id < len(path_list))
+            {
+                // 空なら削除
+                if (len(path_list[path_id]) == 0)
+                {
+                    path_list.del(path_id);
+                    continue;
+                }
+
+                // パスの確認
+                if (!write_flag)
+                {
+                    File buffer(path_list[path_id]);
+                    if (dir.getPath() == buffer.getPath())
+                    {
+                        write_flag = true;
+                        path_list.del(path_id);
+                        continue;
+                    }
+                }
+
+                path_id++;
+            }
+
+            if (write_flag)
+            {
+                path_file.writelines(path_list, WRITEMODE);
+            }
+            else
+            {
+                print("そのパスは存在しません");
+            }
+        }
+        else
+        {
+            print("仮想環境に入っていません");
+        }
+    }
+
+    void removePipConfig(List<String> args, Dict<String, Dict<String, List<String>>> &pip_cfgs)
+    {
+        String loading_order = "[global]";
+        for (int i = 2; i < len(args); i++)
+        {
+            pip_cfgs[loading_order].del(args[i]);
+        }
+    }
+
     void writePipConfig(dataObject::String pip_cfg_path, Dict<String, Dict<String, List<String>>> pip_cfgs)
     {
         TextFile cfgFile(pip_cfg_path);

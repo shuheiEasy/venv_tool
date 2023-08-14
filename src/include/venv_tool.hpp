@@ -114,6 +114,12 @@ namespace venv_tool
     // 仮想環境の削除の実行部分
     void removeEnvExecute(dataObject::String env_name, dataObject::String &venv_path);
 
+    // パスの削除
+    void removePath(dataObject::String path, dataObject::String &venv_path, EnvState &state);
+
+    // Pip設定の削除
+    void removePipConfig(dataObject::List<dataObject::String> args, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
+
     // pip設定ファイル書込
     void writePipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> pip_cfgs);
 }

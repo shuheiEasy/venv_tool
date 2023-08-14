@@ -47,10 +47,10 @@ _venv_complement() {
             COMPREPLY=($(compgen -W "list path show state" -- $cur))
             ;;
         "path")
-            COMPREPLY=($(compgen -W "add list" -- $cur))
+            COMPREPLY=($(compgen -W "add list remove" -- $cur))
             ;;
         "pip")
-            COMPREPLY=($(compgen -W "add" -- $cur))
+            COMPREPLY=($(compgen -W "add remove" -- $cur))
             ;;
         "python")
             COMPREPLY=($(compgen -W "default list" -- $cur))
