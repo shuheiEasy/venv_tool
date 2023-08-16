@@ -294,11 +294,6 @@ namespace venv_tool
         return 0;
     }
 
-    void help_text(void)
-    {
-        print("venv_tool version ", VENV_TOOL_VERSION);
-    }
-
     void setEnvironmentPath(String env_name, String append_dir_path, Dict<String, String> &cfg)
     {
         // 仮想環境のlibフォルダへ移動

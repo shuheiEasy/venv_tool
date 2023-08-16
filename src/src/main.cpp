@@ -37,18 +37,28 @@ int main(int argc, char *argv[])
     }
     else
     {
-
         if (args[0] == "activate")
         {
-            auto flag = activateEnv(args[1], *(configs["venv_path"].getData<String>()), envState);
-            if (flag)
+            if (len(args) == 1)
             {
-                return 10;
+                print("値が指定されていません");
             }
-            else
+
+            if (args[1] != "--help")
             {
-                return 11;
+                auto flag = activateEnv(args[1], *(configs["venv_path"].getData<String>()), envState);
+                if (flag)
+                {
+                    return 10;
+                }
+                else
+                {
+                    return 11;
+                }
             }
+
+            help_text_activate();
+            return -1;
         }
         else if (args[0] == "configure")
         {
@@ -61,20 +71,33 @@ int main(int argc, char *argv[])
             }
             else
             {
-                if (args[1] == "add")
+                if (args[1] == "--help")
+                {
+                    help_text_configure();
+                }
+                else if (args[1] == "add")
                 {
                     if (len(args) == 2)
                     {
                         print("値が指定されていません");
+                        help_text_configure();
                     }
                     else
                     {
                         addConfig(args.slice(2, args.getSize()), env_config);
                     }
                 }
+                else if (args[1] == "show")
+                {
+                    for (auto e : configs)
+                    {
+                        print(e.key, " : ", e.value);
+                    }
+                }
                 else
                 {
                     print("この引数は不正です");
+                    help_text_configure();
                 }
             }
         }
@@ -84,9 +107,14 @@ int main(int argc, char *argv[])
             switch (len(args))
             {
             case 1:
-                print("バージョン情報が足りません");
+                print("値が指定されていません");
+                help_text_create();
                 break;
             case 2:
+                if (args[1] == "--help")
+                {
+                    break;
+                }
                 ret = createEnv(args[1], *(configs["venv_path"].getData<String>()), PythonVersion(*(configs["default_python_version"].getData<String>())));
                 if (ret == 0)
                 {
@@ -94,6 +122,10 @@ int main(int argc, char *argv[])
                 }
                 break;
             case 3:
+                if (args[1] == "--help")
+                {
+                    break;
+                }
                 ret = createEnv(args[1], *(configs["venv_path"].getData<String>()), PythonVersion(args[2]));
                 if (ret == 0)
                 {
@@ -101,18 +133,34 @@ int main(int argc, char *argv[])
                 }
                 break;
             default:
-                print("引数が多すぎます。create [仮想環境名]のようにしてください");
+                print("引数が多すぎます.");
                 break;
             }
+
+            help_text_create();
+            return -1;
         }
         else if (args[0] == "deactivate")
         {
-            String buf;
-            auto flag = envState.getEnvState(buf);
-            if (flag)
+            if (len(args) > 1)
             {
-                return 20;
+                if (args[1] != "--help")
+                {
+                    print("この引数は不正です");
+                }
             }
+            else
+            {
+                String buf;
+                auto flag = envState.getEnvState(buf);
+                if (flag)
+                {
+                    return 20;
+                }
+            }
+
+            help_text_deactivate();
+            return -1;
         }
         else if (args[0] == "env")
         {
@@ -136,7 +184,11 @@ int main(int argc, char *argv[])
             }
             else if (len(args) == 2)
             {
-                if (args[1] == "list")
+                if (args[1] == "--help")
+                {
+                    help_text_env();
+                }
+                else if (args[1] == "list")
                 {
                     printList(envState.getEnvNameList());
                 }
@@ -222,31 +274,57 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    print("envの引数は「name」か「path」か「show」か「state」です");
+                    print("この引数は不正です");
+                    help_text_env();
                 }
             }
             else
             {
                 print("引数が多すぎます。");
+                help_text_env();
             }
+        }
+        else if (args[0] == "help")
+        {
+            help_text();
         }
         else if (args[0] == "install")
         {
-            if (len(args) == 1)
+            if (len(args) == 2)
             {
-                print("バージョン情報が足りません");
-            }
-            else if (len(args) > 2)
-            {
-                print("引数が多すぎます。install VERSIONのようにしてください");
+                if (args[1] == "--help")
+                {
+                    help_text_install();
+                }
+                else
+                {
+                    PythonVersion verson(args[1]);
+                    if (verson.getMajor() < 0)
+                    {
+                        print("Pythonのバージョン指定がおかしいです");
+                        help_text_install();
+                    }
+                    else
+                    {
+                        auto ret = pythonInstall(*(configs["venv_path"].getData<String>()), verson);
+                        if (ret < 0)
+                        {
+                            print("すでにインストールされています");
+                        }
+                    }
+                }
             }
             else
             {
-                auto ret = pythonInstall(*(configs["venv_path"].getData<String>()), PythonVersion(args[1]));
-                if (ret < 0)
+                if (len(args) == 1)
                 {
-                    print("すでにインストールされています");
+                    print("バージョン情報が足りません");
                 }
+                else if (len(args) > 2)
+                {
+                    print("引数が多すぎます。");
+                }
+                help_text_install();
             }
         }
         else if (args[0] == "path")
@@ -261,7 +339,11 @@ int main(int argc, char *argv[])
             }
             else if (len(args) == 2)
             {
-                if (args[1] == "add")
+                if (args[1] == "--help")
+                {
+                    help_text_path();
+                }
+                else if (args[1] == "add")
                 {
                     addPath(".", *(configs["venv_path"].getData<String>()), envState);
                 }
@@ -275,10 +357,19 @@ int main(int argc, char *argv[])
                 {
                     removePath(".", *(configs["venv_path"].getData<String>()), envState);
                 }
+                else
+                {
+                    print("この引数は不正です");
+                    help_text_path();
+                }
             }
             else
             {
-                if (args[1] == "add")
+                if (args[1] == "--help")
+                {
+                    help_text_path();
+                }
+                else if (args[1] == "add")
                 {
                     for (int i = 2; i < len(args); i++)
                     {
@@ -294,7 +385,8 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    print("引数が多すぎです");
+                    print("この引数は不正です");
+                    help_text_path();
                 }
             }
         }
@@ -348,10 +440,15 @@ int main(int argc, char *argv[])
                 if (len(args) == 2)
                 {
                     print("引数が足りません");
+                    help_text_pip();
                 }
                 else
                 {
-                    if (args[1] == "add")
+                    if (args[1] == "--help")
+                    {
+                        help_text_pip();
+                    }
+                    else if (args[1] == "add")
                     {
                         if (envState.getEnvState(env_name))
                         {
@@ -411,7 +508,8 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        print("pipコマンドの第2引数は「add」もしくは「remove」です。");
+                        print("この引数は不正です");
+                        help_text_pip();
                     }
                 }
             }
@@ -447,7 +545,11 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    print("pythonコマンドのオプションはlistかdefaultのみです。");
+                    if (args[1] != "--help")
+                    {
+                        print("この引数は不正です");
+                    }
+                    help_text_python();
                 }
             }
             else if (len(args) == 3)
@@ -458,6 +560,7 @@ int main(int argc, char *argv[])
                     if (verson.getMajor() < 0)
                     {
                         print("Pythonのバージョン指定がおかしいです");
+                        help_text_python();
                     }
                     else
                     {
@@ -471,14 +574,36 @@ int main(int argc, char *argv[])
                         env_config.write();
                     }
                 }
+                else if (args[1] == "install")
+                {
+                    PythonVersion verson(args[2]);
+                    if (verson.getMajor() < 0)
+                    {
+                        print("Pythonのバージョン指定がおかしいです");
+                        help_text_python();
+                    }
+                    else
+                    {
+                        auto ret = pythonInstall(*(configs["venv_path"].getData<String>()), verson);
+                        if (ret < 0)
+                        {
+                            print("すでにインストールされています");
+                        }
+                    }
+                }
                 else
                 {
-                    print("pythonコマンドのオプションはlistかdefaultのみです。");
+                    if (args[1] != "--help")
+                    {
+                        print("この引数は不正です");
+                    }
+                    help_text_python();
                 }
             }
             else
             {
-                print("pythonコマンドのオプションはlistのみです。");
+                print("引数が多すぎます。");
+                help_text_python();
             }
         }
         else if (args[0] == "remove")
@@ -507,8 +632,11 @@ int main(int argc, char *argv[])
             }
             else
             {
-                print("引数が多すぎます。remove [仮想環境名]のようにしてください");
+                print("引数が多すぎます.");
             }
+
+            help_text_remove();
+            return -1;
         }
         else if (args[0] == "remove_environment")
         {
@@ -516,7 +644,22 @@ int main(int argc, char *argv[])
         }
         else if (args[0] == "version")
         {
-            print(VENV_TOOL_VERSION);
+            if (len(args) > 1)
+            {
+                if (args[1] != "--help")
+                {
+                    print("この引数は不正です");
+                }
+                if (len(args) > 2)
+                {
+                    print("引数が多すぎます.");
+                }
+                help_text_version();
+            }
+            else
+            {
+                print(VENV_TOOL_VERSION);
+            }
         }
         else
         {
