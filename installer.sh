@@ -81,9 +81,6 @@ _argAnalyzer $@
 # git submoduleをクローンしておく
 git submodule update --init --recursive --depth 1
 
-# configファイル書き込み
-echo -e "\"default_python_version\" : \"${PYTHON_VERSION[1]}\"\n}" >>src/config/env.json
-
 # ビルドディレクトリ作成し移動
 if [ -d build ]; then
     rm -rf build
@@ -108,11 +105,12 @@ cat scripts/complementHead.sh >>$INSTALL_SPACE/bin/complement.sh
 echo -e "" >>$INSTALL_SPACE/bin/complement.sh
 cat scripts/complementMain.sh >>$INSTALL_SPACE/bin/complement.sh
 
-# Pythonインストール
-$INSTALL_SPACE/bin/venv_tool install ${PYTHON_VERSION[1]}
-
 # bashrcに書き込み
 if "${NO_UPDATE_FLAG}"; then
     echo -e "\n# venvの設定" >>$HOME/.bashrc
     echo -e ". $INSTALL_SPACE/bin/complement.sh\n" >>$HOME/.bashrc
+    echo -e "PATH=\$PATH:$INSTALL_SPACE/bin\n" >>$HOME/.bashrc
 fi
+
+# Pythonインストール
+$INSTALL_SPACE/bin/venv_tool python default ${PYTHON_VERSION[1]}

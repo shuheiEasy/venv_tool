@@ -29,6 +29,66 @@ namespace venv_tool
         }
     }
 
+    void addConfig(List<String> args, JsonFile &config_file)
+    {
+        // 辞書取得
+        Dict<String, Any> &configs = config_file.getDict();
+
+        // 変数登録
+        for (int i = 0; i < args.getSize(); i++)
+        {
+            auto arg = args[i];
+            auto key_and_values = arg.split("=");
+
+            // 入力が不正な場合
+            if (len(key_and_values) != 2)
+            {
+                continue;
+            }
+
+            String key = key_and_values[0];
+            String values = key_and_values[1];
+
+            auto value_list = values.split(",");
+
+            if (configs.exist(key))
+            {
+                if (type(configs[key]) == "List")
+                {
+                    List<Any> *list = configs[key].getData<List<Any>>();
+                    for (int j = 0; j < len(value_list); j++)
+                    {
+                        list->append(Any(value_list[j]));
+                    }
+                }
+                else
+                {
+                    List<Any> list;
+                    list.append(configs[key]);
+                    for (int j = 0; j < len(value_list); j++)
+                    {
+                        list.append(Any(value_list[j]));
+                    }
+                    configs[key] = Any(list);
+                }
+            }
+            else
+            {
+                if (len(value_list) == 1)
+                {
+                    configs[key] = value_list[0];
+                }
+                else
+                {
+                    configs[key] = value_list;
+                }
+            }
+        }
+
+        // ファイル書き込み
+        config_file.write();
+    }
+
     void addPath(String path, String &venv_path, EnvState &state)
     {
         String active_env_name;
@@ -52,7 +112,7 @@ namespace venv_tool
             {
                 String pth_file = venv_path + "env/" + active_env_name + "/lib";
 
-                pth_file =getDirList(pth_file)[0].getPath();
+                pth_file = getDirList(pth_file)[0].getPath();
                 pth_file += "site-packages/paths.pth";
 
                 TextFile text_file(pth_file);
@@ -77,7 +137,7 @@ namespace venv_tool
     void addPipConfig(List<String> args, Dict<String, Dict<String, List<String>>> &pip_cfgs)
     {
         String loading_order = "[global]";
-        for (int i = 3; i < len(args); i++)
+        for (int i = 2; i < len(args); i++)
         {
             auto key_and_value = args[i].split("=");
             if (len(key_and_value) != 2)
@@ -136,7 +196,7 @@ namespace venv_tool
 
     void checkEnv(fileSystem::JsonFile &cfg_json_file)
     {
-        auto &cfg=cfg_json_file.getDict();
+        auto &cfg = cfg_json_file.getDict();
 
         String *venv_path = cfg["venv_path"].getData<String>();
         File venv_space(*venv_path);
@@ -234,11 +294,6 @@ namespace venv_tool
         return 0;
     }
 
-    void help_text(void)
-    {
-        print("venv_tool version ", VENV_TOOL_VERSION);
-    }
-
     void setEnvironmentPath(String env_name, String append_dir_path, Dict<String, String> &cfg)
     {
         // 仮想環境のlibフォルダへ移動
@@ -289,7 +344,7 @@ namespace venv_tool
 
     int pythonInstall(String venv_path, PythonVersion version)
     {
-        if (version.getMajor() < -1)
+        if (version.getMajor() < 0)
         {
             print("Pythonのバージョン指定がおかしいです");
             return -1;
@@ -297,6 +352,7 @@ namespace venv_tool
 
         // Pythonのインストール先
         auto python_install_path = venv_path + "Python/" + version.getVersion();
+
         File python_install_dir(python_install_path);
         if (python_install_dir.exists())
         {
@@ -603,6 +659,77 @@ namespace venv_tool
 
         system(cmd.getChar());
         print(env_name, "環境を削除しました。");
+    }
+
+    void removePath(String path, String &venv_path, EnvState &state)
+    {
+        String active_env_name;
+        if (state.getEnvState(active_env_name))
+        {
+            // パスの生成
+            String pth_file = venv_path + "env/" + active_env_name + "/lib";
+            pth_file = getDirList(pth_file)[0].getPath();
+            pth_file += "site-packages/paths.pth";
+
+            // Pathファイル
+            TextFile path_file(pth_file);
+            if (!path_file.exists())
+            {
+                path_file.touch();
+            }
+
+            // Path確認
+            List<String> path_list = path_file.readlines();
+            File dir(path);
+            bool write_flag = false;
+            int path_id = 0;
+
+            while (path_id < len(path_list))
+            {
+                // 空なら削除
+                if (len(path_list[path_id]) == 0)
+                {
+                    path_list.del(path_id);
+                    continue;
+                }
+
+                // パスの確認
+                if (!write_flag)
+                {
+                    File buffer(path_list[path_id]);
+                    if (dir.getPath() == buffer.getPath())
+                    {
+                        write_flag = true;
+                        path_list.del(path_id);
+                        continue;
+                    }
+                }
+
+                path_id++;
+            }
+
+            if (write_flag)
+            {
+                path_file.writelines(path_list, WRITEMODE);
+            }
+            else
+            {
+                print("そのパスは存在しません");
+            }
+        }
+        else
+        {
+            print("仮想環境に入っていません");
+        }
+    }
+
+    void removePipConfig(List<String> args, Dict<String, Dict<String, List<String>>> &pip_cfgs)
+    {
+        String loading_order = "[global]";
+        for (int i = 2; i < len(args); i++)
+        {
+            pip_cfgs[loading_order].del(args[i]);
+        }
     }
 
     void writePipConfig(dataObject::String pip_cfg_path, Dict<String, Dict<String, List<String>>> pip_cfgs)

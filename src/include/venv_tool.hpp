@@ -1,15 +1,7 @@
 #ifndef VENV_TOOL_CORE_H
 #define VENV_TOOL_CORE_H
 
-#include <dataObject/dataObject.hpp>
-#include <logSystem/logSystem.hpp>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
-
-#include "venv_tool_config.h"
+#include "venv_tool_help.hpp"
 
 namespace venv_tool
 {
@@ -68,11 +60,15 @@ namespace venv_tool
     // 仮想環境の起動
     bool activateEnv(dataObject::String env_name, dataObject::String &venv_path, EnvState &state);
 
+    // 設定項目の追加
+    void addConfig(dataObject::List<dataObject::String> args, fileSystem::JsonFile &config_file);
+
     // パスの追加
     void addPath(dataObject::String path, dataObject::String &venv_path, EnvState &state);
 
     // Pip設定の追加
     void addPipConfig(dataObject::List<dataObject::String> args, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
+
     // 実行環境の確認
     // 状況に応じて初期化する
     void checkEnv(fileSystem::JsonFile &cfg_json_file);
@@ -82,9 +78,6 @@ namespace venv_tool
 
     // 仮想環境の作成
     int createEnv(dataObject::String env_name, dataObject::String venv_path, PythonVersion python_version);
-
-    // Help文出力
-    void help_text(void);
 
     // 仮想環境へパスを通す
     void setEnvironmentPath(dataObject::String env_name, dataObject::String append_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
@@ -109,6 +102,12 @@ namespace venv_tool
 
     // 仮想環境の削除の実行部分
     void removeEnvExecute(dataObject::String env_name, dataObject::String &venv_path);
+
+    // パスの削除
+    void removePath(dataObject::String path, dataObject::String &venv_path, EnvState &state);
+
+    // Pip設定の削除
+    void removePipConfig(dataObject::List<dataObject::String> args, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
 
     // pip設定ファイル書込
     void writePipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> pip_cfgs);
