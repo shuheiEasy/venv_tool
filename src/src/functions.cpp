@@ -227,6 +227,28 @@ namespace venv_tool
         }
     }
 
+    int checkLatestRelease()
+    {
+        fileSystem::JsonFile json;
+
+        // 情報取得
+        if (getLatestRelease(json) != 0)
+        {
+            return -1;
+        }
+
+        // 情報解析
+        PythonVersion release_version(json["name"].getData<String>()->slice(1, 10));
+        PythonVersion tool_version(String(VENV_TOOL_VERSION));
+
+        if (release_version > tool_version)
+        {
+            logSystem::print("新しいバージョンがあります (", tool_version.getVersion(), "->", release_version.getVersion(), ")");
+        }
+
+        return 0;
+    }
+
     List<String> command(dataObject::String cmd)
     {
         FILE *fp;
@@ -294,6 +316,106 @@ namespace venv_tool
         return 0;
     }
 
+    bool downloadZip(const char *url, const char *savePath)
+    {
+        CURL *curl;
+        CURLcode res;
+        bool success = false; // ダウンロードの成功フラグ
+
+        curl_global_init(CURL_GLOBAL_DEFAULT);
+        curl = curl_easy_init();
+
+        if (curl)
+        {
+            FILE *fp = fopen(savePath, "wb"); // ファイルをバイナリ書き込みモードで開く
+
+            if (fp)
+            {
+                curl_easy_setopt(curl, CURLOPT_URL, url);
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteToFileCallback);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+                // リダイレクトをフォローするオプションを設定
+                curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+                // ダウンロード進捗情報を表示するコールバックを設定
+                // curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+                // curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+
+                res = curl_easy_perform(curl);
+
+                fclose(fp);
+
+                if (res == CURLE_OK)
+                {
+                    std::cout << "ZIP file downloaded successfully." << std::endl;
+                    success = true; // ダウンロード成功
+                }
+                else
+                {
+                    std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                }
+            }
+            else
+            {
+                std::cerr << "Failed to open file for writing." << std::endl;
+            }
+
+            curl_easy_cleanup(curl);
+        }
+
+        curl_global_cleanup();
+        return success; // ダウンロードの成功フラグを返す
+    }
+
+    int getLatestRelease(fileSystem::JsonFile &json)
+    {
+        int ret = -1;
+
+        // GitHubのリリース情報を取得するためのAPIエンドポイント
+        const std::string API_ENDPOINT = "https://api.github.com/repos/shuheiEasy/venv_tool/releases/latest";
+
+        CURL *curl;
+        CURLcode res;
+
+        // libcurlの初期化
+        curl_global_init(CURL_GLOBAL_DEFAULT);
+        curl = curl_easy_init();
+
+        if (curl)
+        {
+            // HTTPリクエストの設定
+            std::string response;
+            curl_easy_setopt(curl, CURLOPT_URL, API_ENDPOINT.c_str());
+            curl_easy_setopt(curl, CURLOPT_USERAGENT, "Bing");
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+            // HTTPリクエストの実行
+            res = curl_easy_perform(curl);
+
+            // リクエストが成功したかどうかを確認
+            if (res != CURLE_OK)
+            {
+                std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            }
+            else
+            {
+                // レスポンスの表示
+                json.setData(response.c_str());
+                ret = 0;
+            }
+
+            // libcurlのクリーンアップ
+            curl_easy_cleanup(curl);
+        }
+
+        // libcurlの終了処理
+        curl_global_cleanup();
+
+        return ret;
+    }
+
     void setEnvironmentPath(String env_name, String append_dir_path, Dict<String, String> &cfg)
     {
         // 仮想環境のlibフォルダへ移動
@@ -319,6 +441,64 @@ namespace venv_tool
         }
 
         path_file.writeline(append_dir_path);
+    }
+
+    int updateLatestRelease(String venv_path,String python_version)
+    {
+        fileSystem::JsonFile json;
+
+        // 情報取得
+        if (getLatestRelease(json) != 0)
+        {
+            return -1;
+        }
+
+        // 情報解析
+        PythonVersion release_version(json["name"].getData<String>()->slice(1, 10));
+        PythonVersion tool_version(String(VENV_TOOL_VERSION));
+        String downloadURL = *(json["assets"].getData<List<Any>>()->get(0).getData<Dict<String, Any>>()->at("browser_download_url").getData<String>());
+
+        // 更新があるときだけアップデート
+        if (release_version > tool_version)
+        {
+            // ダウンロードフォルダ作成
+            auto tmp_path = venv_path + "tmp";
+            File tmp_dir(tmp_path);
+            tmp_dir.mkdir();
+
+            // カレントディレクトリ取得
+            auto current_dir = getCurrentDir();
+
+            // 移動
+            moveCurrentDir(tmp_path);
+
+            // Download
+            auto ret = downloadZip(downloadURL.c_str(), "save.zip");
+            if(!ret){
+                return -2;
+            }
+
+            // 解凍
+            system("unzip -q save.zip");
+
+            // 移動
+            moveCurrentDir("venv_tool");
+
+            // インストールコマンド作成
+            String cmd="./installer.sh --update --install_space ";
+            cmd+=venv_path+" --python "+python_version;
+            system(cmd.c_str());
+            logSystem::print(cmd);
+
+            // 移動
+            moveCurrentDir(current_dir);
+
+            // 削除
+            tmp_dir.remove(true);
+            return 1;
+        }
+
+        return 0;
     }
 
     List<String> pathList(String &venv_path)
@@ -730,6 +910,18 @@ namespace venv_tool
         {
             pip_cfgs[loading_order].del(args[i]);
         }
+    }
+
+    size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+    {
+        ((std::string *)userp)->append((char *)contents, size * nmemb);
+        return size * nmemb;
+    }
+
+    size_t WriteToFileCallback(void *ptr, size_t size, size_t nmemb, void *userdata)
+    {
+        size_t written = fwrite(ptr, size, nmemb, (FILE *)userdata);
+        return written;
     }
 
     void writePipConfig(dataObject::String pip_cfg_path, Dict<String, Dict<String, List<String>>> pip_cfgs)

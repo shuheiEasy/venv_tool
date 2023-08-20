@@ -646,19 +646,30 @@ int main(int argc, char *argv[])
         {
             if (len(args) > 1)
             {
-                if (args[1] != "--help")
+                if (args[1] == "update")
                 {
-                    print("この引数は不正です");
+                    auto ret=updateLatestRelease(*(configs["venv_path"].getData<String>()),*(configs["default_python_version"].getData<String>()));
+                    if (ret==1){
+                        return 50;
+                    }
                 }
-                if (len(args) > 2)
+                else
                 {
-                    print("引数が多すぎます.");
+                    if (args[1] != "--help")
+                    {
+                        print("この引数は不正です");
+                    }
+                    if (len(args) > 2)
+                    {
+                        print("引数が多すぎます.");
+                    }
+                    help_text_version();
                 }
-                help_text_version();
             }
             else
             {
                 print(VENV_TOOL_VERSION);
+                checkLatestRelease();
             }
         }
         else

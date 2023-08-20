@@ -58,6 +58,9 @@ _venv_complement() {
         "python")
             COMPREPLY=($(compgen -W "--help default install list" -- $cur))
             ;;
+        "version")
+            COMPREPLY=($(compgen -W "--help update" -- $cur))
+            ;;
         *)
             COMPREPLY=($(compgen -W "--help" -- $cur))
             ;;

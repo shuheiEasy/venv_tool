@@ -2,13 +2,15 @@
 cmake_minimum_required(VERSION 3.13)
 
 # プロジェクト名と使用する言語を設定
-project(venv_tool LANGUAGES CXX VERSION 1.2.0)
+project(venv_tool LANGUAGES CXX VERSION 1.3.0)
 
 # 静的リンクへ変更
 set(STATIC_LINK_FLAG ON CACHE BOOL ON FORCE)
 
 # azagonディレクトリ
 add_subdirectory(azagon)
+# libcurl のパッケージを探す
+find_package(CURL REQUIRED)
 
 # 環境変数ファイルのパスの変数
 set(VenvToolConfigFile . CACHE PATH "config file path")
@@ -49,6 +51,8 @@ add_executable(${PROJECT_NAME}_exe ${source_list})
 
 # リンク
 target_link_libraries(${PROJECT_NAME}_exe ${azagon_LIBS})
+# libcurl ライブラリのリンク
+target_link_libraries(${PROJECT_NAME}_exe ${CURL_LIBRARIES})
 
 # インストール
 install(TARGETS ${PROJECT_NAME}_exe RUNTIME DESTINATION bin)

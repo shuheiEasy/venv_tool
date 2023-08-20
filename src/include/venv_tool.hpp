@@ -73,14 +73,26 @@ namespace venv_tool
     // 状況に応じて初期化する
     void checkEnv(fileSystem::JsonFile &cfg_json_file);
 
+    // 更新を確認
+    int checkLatestRelease();
+
     // 外部コマンド実行
     dataObject::List<dataObject::String> command(dataObject::String cmd);
 
     // 仮想環境の作成
     int createEnv(dataObject::String env_name, dataObject::String venv_path, PythonVersion python_version);
 
+    // zipファイルをダウンロード
+    bool downloadZip(const char *url, const char *savePath);
+
+    // リリースの最新版を取得
+    int getLatestRelease(fileSystem::JsonFile &json);
+
     // 仮想環境へパスを通す
     void setEnvironmentPath(dataObject::String env_name, dataObject::String append_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
+
+    // 最新版へ更新
+    int updateLatestRelease(dataObject::String venv_path,dataObject::String python_version);
 
     // 仮想環境へ通っているパスの一覧を取得
     dataObject::List<dataObject::String> pathList(dataObject::String &venv_path);
@@ -108,6 +120,12 @@ namespace venv_tool
 
     // Pip設定の削除
     void removePipConfig(dataObject::List<dataObject::String> args, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &pip_cfgs);
+
+    // HTTPリクエストのコールバック関数
+    size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
+
+    // HTTPリクエストのファイル用コールバック関数
+    size_t WriteToFileCallback(void *ptr, size_t size, size_t nmemb, void *userdata);
 
     // pip設定ファイル書込
     void writePipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> pip_cfgs);
