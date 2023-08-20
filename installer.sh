@@ -71,7 +71,8 @@ else
 fi
 
 # 変数の一覧(規定値)
-PYTHON_VERSION=($(python3 -V))
+python_version=($(python3 -V))
+PYTHON_VERSION=${python_version[1]}
 INSTALL_SPACE=$HOME/.venv
 NO_UPDATE_FLAG=true
 
@@ -101,7 +102,7 @@ make -j$JOBS
 make install
 
 # 補完機能のスクリプト作成
-cat scripts/complementHead.sh >>$INSTALL_SPACE/bin/complement.sh
+cat scripts/complementHead.sh >$INSTALL_SPACE/bin/complement.sh
 echo -e "" >>$INSTALL_SPACE/bin/complement.sh
 cat scripts/complementMain.sh >>$INSTALL_SPACE/bin/complement.sh
 
@@ -113,4 +114,4 @@ if "${NO_UPDATE_FLAG}"; then
 fi
 
 # Pythonインストール
-$INSTALL_SPACE/bin/venv_tool python default ${PYTHON_VERSION[1]}
+$INSTALL_SPACE/bin/venv_tool python default $PYTHON_VERSION
