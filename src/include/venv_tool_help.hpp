@@ -4,6 +4,7 @@
 #include <dataObject/dataObject.hpp>
 #include <logSystem/logSystem.hpp>
 
+#include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

@@ -57,6 +57,9 @@ case "$1" in
         deactivate
         $tool_path remove_environment $2
         ;;
+    "50")
+        source ~/.bashrc
+        ;;
     esac
     ;;
 esac

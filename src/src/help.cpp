@@ -119,7 +119,10 @@ namespace venv_tool
     }
     void help_text_version(void)
     {
-        print("使い方: venv version");
+        print("使い方: venv version [COMMAND]");
         print("venv_toolのバージョンを表示する.");
+
+        print("\nコマンド一覧");
+        print(" update  venv_toolを最新版に更新する.");
     }
 }

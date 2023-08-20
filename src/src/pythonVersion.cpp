@@ -76,11 +76,11 @@ namespace venv_tool
             return true;
         }
 
-        if (this->patch < data.getPatch())
+        if (this->patch > data.getPatch())
         {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
 }
