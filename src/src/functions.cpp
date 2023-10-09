@@ -443,7 +443,7 @@ namespace venv_tool
         path_file.writeline(append_dir_path);
     }
 
-    int updateLatestRelease(String venv_path,String python_version)
+    int updateLatestRelease(String venv_path, String python_version)
     {
         fileSystem::JsonFile json;
 
@@ -474,7 +474,8 @@ namespace venv_tool
 
             // Download
             auto ret = downloadZip(downloadURL.c_str(), "save.zip");
-            if(!ret){
+            if (!ret)
+            {
                 return -2;
             }
 
@@ -485,8 +486,8 @@ namespace venv_tool
             moveCurrentDir("venv_tool");
 
             // インストールコマンド作成
-            String cmd="./installer.sh --update --install_space ";
-            cmd+=venv_path+" --python "+python_version;
+            String cmd = "./installer.sh --update --install_space ";
+            cmd += venv_path + " --python " + python_version;
             system(cmd.c_str());
             logSystem::print(cmd);
 
@@ -773,7 +774,7 @@ namespace venv_tool
         }
     }
 
-    int removeEnvConfirm(String env_name, String &venv_path, EnvState &state)
+    int removeEnvConfirm(String env_name, String &venv_path, EnvState &state, bool yes_flag)
     {
         String path = venv_path + "env/" + env_name;
         File env_dir(path);
@@ -782,24 +783,33 @@ namespace venv_tool
         {
             int letter;
             String option;
+            bool remove_flag = yes_flag;
             char text[2];
             text[1] = '\0';
-            print(env_name, "環境を本当に削除しますか？[y]");
-            while ((letter = getchar()) != EOF)
+
+            if (!remove_flag)
             {
-                text[0] = (char)letter;
-                String moji(text);
-                if (moji == "\n")
+                print(env_name, "環境を本当に削除しますか？[y]");
+                while ((letter = getchar()) != EOF)
                 {
-                    break;
+                    text[0] = (char)letter;
+                    String moji(text);
+                    if (moji == "\n")
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        option += moji;
+                    }
                 }
-                else
-                {
-                    option += moji;
+
+                if (option == "Y" || option == "y" || option == "Yes" || option == "yes"){
+                    remove_flag=true;
                 }
             }
 
-            if (option == "Y" || option == "y" || option == "Yes" || option == "yes")
+            if (remove_flag)
             {
                 String current_env_name = "";
                 if (state.getEnvState(current_env_name))

@@ -110,7 +110,7 @@ namespace venv_tool
     void readPipConfig(dataObject::String pip_cfg_path, dataObject::Dict<dataObject::String, dataObject::Dict<dataObject::String, dataObject::List<dataObject::String>>> &cfg);
 
     // 仮想環境の削除のUI
-    int removeEnvConfirm(dataObject::String env_name, dataObject::String &venv_path, EnvState &state);
+    int removeEnvConfirm(dataObject::String env_name, dataObject::String &venv_path, EnvState &state,bool yes_flag);
 
     // 仮想環境の削除の実行部分
     void removeEnvExecute(dataObject::String env_name, dataObject::String &venv_path);

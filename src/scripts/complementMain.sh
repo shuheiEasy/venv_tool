@@ -38,7 +38,7 @@ _venv_complement() {
     "2")
         case "${COMP_WORDS[1]}" in
         "activate" | "remove")
-            COMPREPLY=($(compgen -W "--help $env_list" -- $cur))
+            COMPREPLY=($(compgen -W "--help -y $env_list" -- $cur))
             ;;
         "configure")
             COMPREPLY=($(compgen -W "--help add show" -- $cur))
@@ -71,10 +71,24 @@ _venv_complement() {
         "create")
             COMPREPLY=($(compgen -W "$py_list_text" -- $cur))
             ;;
+        "env")
+            case "${COMP_WORDS[2]}" in
+            "path")
+                COMPREPLY=($(compgen -W "$env_list" -- $cur))
+                ;;
+            esac
+            ;;
         "python")
             case "${COMP_WORDS[2]}" in
             "default")
                 COMPREPLY=($(compgen -W "$py_list_text" -- $cur))
+                ;;
+            esac
+            ;;
+        "remove")
+            case "${COMP_WORDS[2]}" in
+            "-y")
+                COMPREPLY=($(compgen -W "$env_list" -- $cur))
                 ;;
             esac
             ;;

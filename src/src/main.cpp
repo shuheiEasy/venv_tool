@@ -194,32 +194,47 @@ int main(int argc, char *argv[])
                 }
                 else if (args[1] == "path")
                 {
-                    auto list = envState.getEnvPathList();
-                    for (int i = 0; i < len(list); i++)
+                    auto names = envState.getEnvNameList();
+                    auto paths = envState.getEnvPathList();
+
+                    if (len(names) != len(paths))
                     {
-                        print(list[i]);
+                        print("予期せぬエラーが発生しました.");
+                    }
+                    else
+                    {
+                        for (int i = 0; i < len(paths); i++)
+                        {
+                            print(names[i], " : ", paths[i]);
+                        }
                     }
                 }
                 else if (args[1] == "show")
                 {
                     auto env_name_list = envState.getEnvNameList();
                     auto env_path_list = envState.getEnvPathList();
+
                     String active_env_name;
                     String env_name = "-";
-                    String PYTHONVERSIONTEXT = "python version ";
+                    const String ENVNAMETEXT = "env_name";
+                    String PYTHONVERSIONTEXT = "version ";
+
                     int ENV_LEN = 32;
                     envState.getEnvState(active_env_name);
+
                     for (int i = len(env_name); i < ENV_LEN + len(PYTHONVERSIONTEXT) + 1; i++)
                     {
                         env_name += "-";
                     }
                     print("+---", env_name, "-", "+");
-                    env_name = "env_name";
+
+                    env_name = ENVNAMETEXT;
                     for (int i = len(env_name); i < ENV_LEN + 1; i++)
                     {
                         env_name += " ";
                     }
                     print("|   ", env_name, " ", PYTHONVERSIONTEXT, "|");
+
                     env_name = "=";
                     for (int i = len(env_name); i < ENV_LEN + len(PYTHONVERSIONTEXT) + 1; i++)
                     {
@@ -276,6 +291,39 @@ int main(int argc, char *argv[])
                 {
                     print("この引数は不正です");
                     help_text_env();
+                }
+            }
+            else if (args[1] == "path")
+            {
+                auto names = envState.getEnvNameList();
+                auto paths = envState.getEnvPathList();
+
+                if (len(names) != len(paths))
+                {
+                    print("予期せぬエラーが発生しました.");
+                }
+                else
+                {
+                    // 探索
+                    int idx = -1;
+                    for (int i = 0; i < names.getSize(); i++)
+                    {
+                        if (names[i] == args[2])
+                        {
+                            idx = i;
+                            break;
+                        }
+                    }
+
+                    // 出力
+                    if (idx < 0)
+                    {
+                        print("存在しない環境です.");
+                    }
+                    else
+                    {
+                        print(paths[idx]);
+                    }
                 }
             }
             else
@@ -615,19 +663,52 @@ int main(int argc, char *argv[])
             }
             else if (len(args) == 2)
             {
-                auto flag = removeEnvConfirm(args[1], *(configs["venv_path"].getData<String>()), envState);
-                switch (flag)
+                if (args[1] == "--help")
                 {
-                case 0:
-                    return 40;
-                case 1:
-                    return 41;
-                case 2:
-                    return 42;
-                case 3:
-                    return 43;
-                default:
-                    break;
+                    help_text_remove();
+                    return -1;
+                }
+                else
+                {
+                    auto flag = removeEnvConfirm(args[1], *(configs["venv_path"].getData<String>()), envState, false);
+                    switch (flag)
+                    {
+                    case 0:
+                        return 40;
+                    case 1:
+                        return 41;
+                    case 2:
+                        return 42;
+                    case 3:
+                        return 43;
+                    default:
+                        break;
+                    }
+                }
+            }
+            else if (len(args) == 3)
+            {
+                if (args[1] != "-y")
+                {
+                    help_text_remove();
+                    return -1;
+                }
+                else
+                {
+                    auto flag = removeEnvConfirm(args[2], *(configs["venv_path"].getData<String>()), envState, true);
+                    switch (flag)
+                    {
+                    case 0:
+                        return 45;
+                    case 1:
+                        return 46;
+                    case 2:
+                        return 47;
+                    case 3:
+                        return 48;
+                    default:
+                        break;
+                    }
                 }
             }
             else
@@ -648,8 +729,9 @@ int main(int argc, char *argv[])
             {
                 if (args[1] == "update")
                 {
-                    auto ret=updateLatestRelease(*(configs["venv_path"].getData<String>()),*(configs["default_python_version"].getData<String>()));
-                    if (ret==1){
+                    auto ret = updateLatestRelease(*(configs["venv_path"].getData<String>()), *(configs["default_python_version"].getData<String>()));
+                    if (ret == 1)
+                    {
                         return 50;
                     }
                 }

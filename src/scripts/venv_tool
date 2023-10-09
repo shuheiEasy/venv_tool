@@ -57,6 +57,13 @@ case "$1" in
         deactivate
         $tool_path remove_environment $2
         ;;
+    "45")
+        $tool_path remove_environment $3
+        ;;
+    "46")
+        deactivate
+        $tool_path remove_environment $3
+        ;;
     "50")
         source ~/.bashrc
         ;;
