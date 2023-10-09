@@ -61,7 +61,7 @@ namespace venv_tool
     }
     void help_text_env(void)
     {
-        print("使い方: venv env [COMMAND]");
+        print("使い方: venv env [COMMAND] [NAME]");
         print("venv_toolで管理している仮想環境を確認する.");
 
         print("\nコマンド一覧");
@@ -69,6 +69,9 @@ namespace venv_tool
         print(" path   venv_toolで管理している仮想環境の絶対パスの一覧を表示する.");
         print(" show   venv_toolで管理している仮想環境の詳細を確認する.");
         print(" state  現在の環境を表示する.");
+        
+        print("\n引数一覧");
+        print(" NAME   検索する環境名");
     }
     void help_text_install(void)
     {
@@ -113,9 +116,12 @@ namespace venv_tool
     }
     void help_text_remove(void)
     {
-        print("使い方: venv remove <NAME>");
-        print("　　　  NAME:削除する環境名");
+        print("使い方: venv remove [OPTION] <NAME>");
         print("\n指定した仮想環境を削除する.");
+        print("\n引数一覧");
+        print(" NAME  削除する環境名");
+        print("\nオプション一覧");
+        print(" -y    選択肢にYESを入力する.");
     }
     void help_text_version(void)
     {
