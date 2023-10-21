@@ -498,6 +498,10 @@ namespace venv_tool
             tmp_dir.remove(true);
             return 1;
         }
+        else
+        {
+            logSystem::print("最新バージョン(",tool_version.getVersion(),") がインストールされています。");
+        }
 
         return 0;
     }
@@ -804,8 +808,9 @@ namespace venv_tool
                     }
                 }
 
-                if (option == "Y" || option == "y" || option == "Yes" || option == "yes"){
-                    remove_flag=true;
+                if (option == "Y" || option == "y" || option == "Yes" || option == "yes")
+                {
+                    remove_flag = true;
                 }
             }
 
