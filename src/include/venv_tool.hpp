@@ -91,6 +91,9 @@ namespace venv_tool
     // 仮想環境へパスを通す
     void setEnvironmentPath(dataObject::String env_name, dataObject::String append_dir_path, dataObject::Dict<dataObject::String, dataObject::String> &cfg);
 
+    // 引数のオプションの書き方を変換する
+    void translateArgOptions(dataObject::List<dataObject::String> &args);
+
     // 最新版へ更新
     int updateLatestRelease(dataObject::String venv_path,dataObject::String python_version);
 

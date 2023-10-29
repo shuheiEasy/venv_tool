@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     {
         args.append(argv[i]);
     }
+    translateArgOptions(args);
 
     // 環境変数の読込
     fileSystem::JsonFile env_config(VENV_TOOL_ENV_CONFIG_FILE);
@@ -422,7 +423,7 @@ int main(int argc, char *argv[])
                 help_text_env();
             }
         }
-        else if (args[0] == "help")
+        else if (args[0] == "help"||args[0] == "--help")
         {
             help_text();
         }
@@ -778,7 +779,7 @@ int main(int argc, char *argv[])
             }
             else if (len(args) == 3)
             {
-                if (args[1] != "-y")
+                if (args[1] != "--yes")
                 {
                     help_text_remove();
                     return -1;
