@@ -443,6 +443,32 @@ namespace venv_tool
         path_file.writeline(append_dir_path);
     }
 
+    void translateArgOptions(List<String> &args)
+    {
+        for (int i = 0; i < len(args); i++)
+        {
+            if (args[i].find("--") == 0)
+            {
+            }
+            else if (args[i].find("-") == 0)
+            {
+                auto option = args[i].slice(1, len(args[i]));
+                if (option == "y")
+                {
+                    args[i] = "--yes";
+                }
+                else if (option == "n")
+                {
+                    args[i] = "--no";
+                }
+                else if (option == "h")
+                {
+                    args[i] = "--help";
+                }
+            }
+        }
+    }
+
     int updateLatestRelease(String venv_path, String python_version)
     {
         fileSystem::JsonFile json;
@@ -497,6 +523,10 @@ namespace venv_tool
             // 削除
             tmp_dir.remove(true);
             return 1;
+        }
+        else
+        {
+            logSystem::print("最新バージョン(", tool_version.getVersion(), ") がインストールされています。");
         }
 
         return 0;
@@ -804,8 +834,9 @@ namespace venv_tool
                     }
                 }
 
-                if (option == "Y" || option == "y" || option == "Yes" || option == "yes"){
-                    remove_flag=true;
+                if (option == "Y" || option == "y" || option == "Yes" || option == "yes")
+                {
+                    remove_flag = true;
                 }
             }
 

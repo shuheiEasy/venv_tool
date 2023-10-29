@@ -33,12 +33,12 @@ _venv_complement() {
 
     case "$COMP_CWORD" in
     "1")
-        COMPREPLY=($(compgen -W "activate configure create deactivate env help install path pip python remove version" -- $cur))
+        COMPREPLY=($(compgen -W "activate configure create deactivate env help install path pip python remove version -h" -- $cur))
         ;;
     "2")
         case "${COMP_WORDS[1]}" in
-        "activate" | "remove")
-            COMPREPLY=($(compgen -W "--help -y $env_list" -- $cur))
+        "activate")
+            COMPREPLY=($(compgen -W "--help $env_list" -- $cur))
             ;;
         "configure")
             COMPREPLY=($(compgen -W "--help add show" -- $cur))
@@ -58,11 +58,14 @@ _venv_complement() {
         "python")
             COMPREPLY=($(compgen -W "--help default install list" -- $cur))
             ;;
+        "remove")
+            COMPREPLY=($(compgen -W "--help --yes $env_list" -- $cur))
+            ;;
         "version")
             COMPREPLY=($(compgen -W "--help update" -- $cur))
             ;;
         *)
-            COMPREPLY=($(compgen -W "--help" -- $cur))
+            COMPREPLY=($(compgen -W "--help " -- $cur))
             ;;
         esac
         ;;
@@ -87,7 +90,7 @@ _venv_complement() {
             ;;
         "remove")
             case "${COMP_WORDS[2]}" in
-            "-y")
+            "-y" | "--yes")
                 COMPREPLY=($(compgen -W "$env_list" -- $cur))
                 ;;
             esac

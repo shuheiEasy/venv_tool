@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     {
         args.append(argv[i]);
     }
+    translateArgOptions(args);
 
     // 環境変数の読込
     fileSystem::JsonFile env_config(VENV_TOOL_ENV_CONFIG_FILE);
@@ -211,68 +212,158 @@ int main(int argc, char *argv[])
                 }
                 else if (args[1] == "show")
                 {
+                    // 環境取得
                     auto env_name_list = envState.getEnvNameList();
                     auto env_path_list = envState.getEnvPathList();
 
-                    String active_env_name;
-                    String env_name = "-";
-                    const String ENVNAMETEXT = "env_name";
-                    String PYTHONVERSIONTEXT = "version ";
+                    // 定数
+                    Dict<String, String> OUTPUTTEXT;
+                    OUTPUTTEXT["env_name"] = "name";
+                    OUTPUTTEXT["version"] = "version";
+                    OUTPUTTEXT["path"] = "path";
+                    OUTPUTTEXT["active"] = " * ";
+                    OUTPUTTEXT["space"] = " ";
+                    OUTPUTTEXT["width"] = "-";
+                    OUTPUTTEXT["height"] = "|";
+                    OUTPUTTEXT["corner"] = "+";
+                    OUTPUTTEXT["border"] = "=";
 
-                    int ENV_LEN = 32;
+                    // 実行環境取得
+                    String active_env_name;
                     envState.getEnvState(active_env_name);
 
-                    for (int i = len(env_name); i < ENV_LEN + len(PYTHONVERSIONTEXT) + 1; i++)
-                    {
-                        env_name += "-";
-                    }
-                    print("+---", env_name, "-", "+");
-
-                    env_name = ENVNAMETEXT;
-                    for (int i = len(env_name); i < ENV_LEN + 1; i++)
-                    {
-                        env_name += " ";
-                    }
-                    print("|   ", env_name, " ", PYTHONVERSIONTEXT, "|");
-
-                    env_name = "=";
-                    for (int i = len(env_name); i < ENV_LEN + len(PYTHONVERSIONTEXT) + 1; i++)
-                    {
-                        env_name += "=";
-                    }
-                    print("|===", env_name, "=", "|");
-
+                    // Pythonのバージョンリスト取得
+                    List<String> env_version_list;
                     for (int i = 0; i < len(env_name_list); i++)
                     {
                         String cmd = env_path_list[i];
                         cmd += "/bin/python3 -V";
                         auto ret = command(cmd);
                         auto python_version_name = ret[0].split(" ")[1];
-                        for (int i = len(python_version_name); i < len(PYTHONVERSIONTEXT); i++)
-                        {
-                            python_version_name += " ";
-                        }
-                        auto env_name = env_name_list[i];
-                        for (int i = len(env_name); i < ENV_LEN + 1; i++)
-                        {
-                            env_name += " ";
-                        }
+                        env_version_list.append(python_version_name);
+                    }
 
-                        if (env_name_list[i] == active_env_name)
+                    // 出力の長さ
+                    Dict<String, Int> TEXTLENGTH;
+                    TEXTLENGTH["space"] = 1;
+                    TEXTLENGTH["flag"] = len(OUTPUTTEXT["active"]);
+                    TEXTLENGTH["name"] = len(OUTPUTTEXT["env_name"]) + TEXTLENGTH["space"];
+                    TEXTLENGTH["version"] = len(OUTPUTTEXT["version"]) + TEXTLENGTH["space"];
+                    TEXTLENGTH["path"] = len(OUTPUTTEXT["path"]) + TEXTLENGTH["space"];
+
+                    for (int i = 0; i < len(env_name_list); i++)
+                    {
+                        if (TEXTLENGTH["name"] < len(env_name_list[i]) + TEXTLENGTH["space"])
                         {
-                            print("| * ", env_name, " ", python_version_name, "|");
+                            TEXTLENGTH["name"] = len(env_name_list[i]) + TEXTLENGTH["space"];
+                        }
+                        if (TEXTLENGTH["version"] < len(env_version_list[i]) + TEXTLENGTH["space"])
+                        {
+                            TEXTLENGTH["version"] = len(env_version_list[i]) + TEXTLENGTH["space"];
+                        }
+                        if (TEXTLENGTH["path"] < len(env_path_list[i]) + TEXTLENGTH["space"])
+                        {
+                            TEXTLENGTH["path"] = len(env_path_list[i]) + TEXTLENGTH["space"];
+                        }
+                    }
+
+                    /////////////////////////////////////////////////////////////
+                    // 出力
+                    /////////////////////////////////////////////////////////////
+
+                    // 1行目
+                    String output = OUTPUTTEXT["corner"];
+                    for (int i = 0; i < TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"] + TEXTLENGTH["space"] + TEXTLENGTH["path"]; i++)
+                    {
+                        output += OUTPUTTEXT["width"];
+                    }
+                    output += OUTPUTTEXT["corner"];
+                    print(output);
+
+                    // 2行目
+                    output = OUTPUTTEXT["height"];
+                    for (int i = 0; i < TEXTLENGTH["flag"]; i++)
+                    {
+                        output += OUTPUTTEXT["space"];
+                    }
+                    output += OUTPUTTEXT["env_name"];
+                    while (len(output) < 1 + TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"])
+                    {
+                        output += OUTPUTTEXT["space"];
+                    }
+                    output += OUTPUTTEXT["version"];
+                    while (len(output) < 1 + TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"]+ TEXTLENGTH["space"])
+                    {
+                        output += OUTPUTTEXT["space"];
+                    }
+                    output += OUTPUTTEXT["path"];
+                    while (len(output) < 1 + TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"] + TEXTLENGTH["space"] + TEXTLENGTH["path"])
+                    {
+                        output += OUTPUTTEXT["space"];
+                    }
+                    output += OUTPUTTEXT["height"];
+                    print(output);
+
+                    // 3行目
+                    output = OUTPUTTEXT["height"];
+                    for (int i = 0; i < TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"]+ TEXTLENGTH["space"] + TEXTLENGTH["path"]; i++)
+                    {
+                        output += OUTPUTTEXT["border"];
+                    }
+                    output += OUTPUTTEXT["height"];
+                    print(output);
+
+                    // 4行目以降
+                    for (int env_id = 0; env_id < len(env_name_list); env_id++)
+                    {
+                        output = OUTPUTTEXT["height"];
+
+                        // 起動状態
+                        if (env_name_list[env_id] == active_env_name)
+                        {
+                            output += OUTPUTTEXT["active"];
                         }
                         else
                         {
-                            print("|   ", env_name, " ", python_version_name, "|");
+                            for (int i = 0; i < TEXTLENGTH["flag"]; i++)
+                            {
+                                output += OUTPUTTEXT["space"];
+                            }
                         }
+
+                        // 環境名
+                        output += env_name_list[env_id];
+                        while (len(output) < 1 + TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"])
+                        {
+                            output += OUTPUTTEXT["space"];
+                        }
+
+                        // Pythonのバージョン
+                        output += env_version_list[env_id];
+                        while (len(output) < 1 + TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"]+ TEXTLENGTH["space"])
+                        {
+                            output += OUTPUTTEXT["space"];
+                        }
+
+                        // 環境パス
+                        output += env_path_list[env_id];
+                        while (len(output) < 1 + TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"] + TEXTLENGTH["space"] + TEXTLENGTH["path"])
+                        {
+                            output += OUTPUTTEXT["space"];
+                        }
+
+                        output += OUTPUTTEXT["height"];
+                        print(output);
                     }
-                    env_name = "-";
-                    for (int i = len(env_name); i < ENV_LEN + len(PYTHONVERSIONTEXT) + 1; i++)
+
+                    // 最終行
+                    output = OUTPUTTEXT["corner"];
+                    for (int i = 0; i < TEXTLENGTH["flag"] + TEXTLENGTH["name"] + TEXTLENGTH["space"] + TEXTLENGTH["version"] + TEXTLENGTH["space"] + TEXTLENGTH["path"]; i++)
                     {
-                        env_name += "-";
+                        output += OUTPUTTEXT["width"];
                     }
-                    print("+---", env_name, "-", "+");
+                    output += OUTPUTTEXT["corner"];
+                    print(output);
                 }
                 else if (args[1] == "state")
                 {
@@ -332,7 +423,7 @@ int main(int argc, char *argv[])
                 help_text_env();
             }
         }
-        else if (args[0] == "help")
+        else if (args[0] == "help"||args[0] == "--help")
         {
             help_text();
         }
@@ -688,7 +779,7 @@ int main(int argc, char *argv[])
             }
             else if (len(args) == 3)
             {
-                if (args[1] != "-y")
+                if (args[1] != "--yes")
                 {
                     help_text_remove();
                     return -1;
